@@ -1,0 +1,63 @@
+// GEP protocol implementation.
+
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
+#ifdef __cplusplus
+#define __STDC_FORMAT_MACROS
+#endif
+
+#include "gep_protocol.h"
+
+#include <google/protobuf/text_format.h>  // for TextFormat
+#include <netinet/in.h>  // for htonl
+
+#include "utils.h"  // for SET_UINT32, UINT32, snprintf_printable
+
+const int64_t kDefaultSelectTimeUsec = secs_to_usecs(1);
+
+GepProtocol::GepProtocol(int port)
+    : port_(port),
+      select_timeout_usec_(kDefaultSelectTimeUsec) {
+}
+
+GepProtocol::~GepProtocol() {
+}
+
+// descriptor/tag converters
+int GepProtocol::TagString(uint32_t tag, char *buf, int max_buf) {
+  uint32_t tag_n = htonl(tag);
+  return snprintf_printable(buf, max_buf,
+                            reinterpret_cast<uint8_t *>(&tag_n), 4);
+}
+
+void GepProtocol::SetSelectTimeoutUsec(int64_t select_timeout_usec) {
+  select_timeout_usec_ = select_timeout_usec;
+}
+
+bool GepProtocol::ScanHeader(uint8_t *buf, uint32_t *tag, uint32_t *value_len) {
+  // read TL in TLV
+  uint32_t magic = UINT32(buf + kOffsetMagic);
+  *tag = UINT32(buf + kOffsetTag);
+  *value_len = UINT32(buf + kOffsetLen);
+
+  // check the magic number
+  return (magic == kMagic);
+}
+
+void GepProtocol::PrintHeader(uint32_t tag, uint32_t value_len, uint8_t *buf) {
+  SET_UINT32(buf + kOffsetMagic, kMagic);
+  SET_UINT32(buf + kOffsetTag, tag);
+  SET_UINT32(buf + kOffsetLen, value_len);
+}
+
+bool GepProtocol::Serialize(const ::google::protobuf::Message &msg,
+                            std::string *s) {
+  return (google::protobuf::TextFormat::PrintToString(msg, s));
+}
+
+bool GepProtocol::Unserialize(const std::string &s,
+                              ::google::protobuf::Message *msg) {
+  return (google::protobuf::TextFormat::ParseFromString(s, msg));
+}

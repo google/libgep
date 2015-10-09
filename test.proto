@@ -1,0 +1,32 @@
+// A protocol buffer representation of a test API.
+
+syntax = "proto2";
+
+
+message Command1 {
+  optional int64 a = 1;
+  optional int32 b = 2;
+}
+
+message Command2 {
+  optional int64 id = 1;
+}
+
+message Command3 {
+  optional int64 id = 1;
+}
+
+message Command4 {
+  optional int64 id = 1;
+}
+
+message ControlMessage {
+  enum Command {
+    COMMAND_NULL = 0;
+    // dump internals info in the log [client, server]
+    COMMAND_DEBUGLOG = 1;
+    // flush playlist [server]
+    COMMAND_FLUSH_PLAYLIST = 2;
+  }
+  optional Command command = 1 [default = COMMAND_NULL];
+}
