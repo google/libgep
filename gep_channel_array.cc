@@ -159,6 +159,17 @@ int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg) {
   return ret;
 }
 
+// Returns -1 if the message couldn't be sent, 0 otherwise
+int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg,
+                                 int id) {
+  // send the message to a specific GepChannel's
+  for (auto &gep_channel_ptr : gep_channel_vector_) {
+    if (gep_channel_ptr->IsOpenSocket() && id == gep_channel_ptr->GetId())
+      return gep_channel_ptr->SendMessage(msg);
+  }
+  return -1;
+}
+
 int GepChannelArray::GetVectorSize() {
   std::lock_guard<std::mutex> lock(gep_channel_vector_lock_);
   return gep_channel_vector_.size();

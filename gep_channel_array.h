@@ -42,6 +42,10 @@ class GepChannelArray {
   // server-initiated operations.
   int SendMessage(const ::google::protobuf::Message &msg);
 
+  // Send a specific protobuf message to a specified GEP client.
+  // Returns status value (0 if all ok, -1 if the receiver failed).
+  int SendMessage(const ::google::protobuf::Message &msg, int id);
+
   void ClearGepChannelVector();
   // accessors
   int GetVectorSize();
