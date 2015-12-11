@@ -1,7 +1,7 @@
 TOP:=.
-TARGETS=libgepserver.a libgepclient.a libtest.a
+TARGETS=libgepserver.a libgepclient.a
 TEST_TARGETS= gep_test
-include ./rules.mk
+include rules.mk
 
 CPPFLAGS+=-I. -I..
 LIBS+=-lprotobuf
@@ -21,11 +21,6 @@ test.pb.h: test.proto
 	echo "Building test.pb.h"
 	$(HOST_PROTOC) $(PROTOFLAGS) $<
 
-libtest.a: \
-    test.pb.o \
-    test_protocol.o
-	$(make_lib)
-
 libgepserver.a: \
     utils.o \
     gep_protocol.o \
@@ -42,10 +37,26 @@ libgepclient.a: \
     gep_client.o
 	$(make_lib)
 
-$(TEST_TARGETS): LIBS+=-lprotobuf-lite -lprotobuf -lgtest -lgtest_main \
+$(TEST_TARGETS): LIBS+=-lprotobuf-lite -lprotobuf -lgtest
+
+$(TEST_TARGETS): \
     libgepserver.a \
     libgepclient.a \
-    libtest.a
+    test.pb.t.o \
+    test_protocol.t.o
+
+install:
+	$(INSTALL) -D -m 0444 \
+		gep_server.h \
+		gep_protocol.h \
+		gep_client.h \
+		gep_channel.h \
+		gep_channel_array.h \
+		$(DESTDIR)/usr/include/
+	$(INSTALL) -D -m 0755 \
+		libgepserver.a \
+		libgepclient.a \
+		$(DESTDIR)/usr/lib/
 
 clean::
 	rm -f *.pb.* .protos_done

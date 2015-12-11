@@ -29,7 +29,6 @@ HOST_CC:=clang
 HOST_CXX:=clang++
 endif
 
-CROSS_PREFIX:=$(TARGET)
 ifeq ($(CROSS_PREFIX),)
 CC:=$(HOST_CC)
 CXX:=$(HOST_CXX)
