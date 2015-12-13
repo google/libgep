@@ -24,6 +24,7 @@
 
 #include "utils.h"  // for snprintf_printable, FullSend
 
+using namespace libgep_utils;
 
 GepChannel::GepChannel(int id, const std::string &name,
                        GepProtocol *proto, const GepVFT *ops,

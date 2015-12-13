@@ -5,6 +5,7 @@
 #include <sys/time.h>  // for timeval
 #include <google/protobuf/message.h>
 
+namespace libgep_utils {
 
 #define UINT64(x)                                                  \
     (((uint64_t)*((x) + 0) << 56) | ((uint64_t)*((x) + 1) << 48) |   \
@@ -168,5 +169,7 @@ int set_socket_rcvbuf_size(const char *log_module, int sock, int size,
                            int *actual_size);
 int get_socket_rcvbuf_size(const char *log_module, int sock, int *actual_size);
 int get_socket_port(const char *log_module, int sock, int *port);
+
+}  //  namespace libgep_utils
 
 #endif  // _UTILS_H_

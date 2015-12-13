@@ -12,6 +12,7 @@
 #include "test_protocol.h"
 #include "utils.h"
 
+using namespace libgep_utils;
 
 const int kMaxChannels = 8;
 

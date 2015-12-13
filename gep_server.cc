@@ -24,6 +24,7 @@
 #include "gep_channel_array.h"  // for GepChannelArray
 #include "utils.h"  // for MAX
 
+using namespace libgep_utils;
 
 GepServer::GepServer(const std::string &name, int max_channels,
     void *context, GepProtocol *proto, const GepVFT* ops)

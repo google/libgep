@@ -25,6 +25,8 @@
 #include <string>                       // for string, operator==, etc
 
 
+namespace libgep_utils {
+
 LogLevel gep_log_level = LOG_WARNING;
 
 void gep_log_set_level(LogLevel level) {
@@ -323,3 +325,5 @@ char *get_peer_ip(int sock, char *buf, int size) {
   nice_snprintf(buf, size, "%s", "unknown");
   return buf;
 }
+
+}  // namespace libgep_utils

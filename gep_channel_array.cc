@@ -23,6 +23,7 @@
 #include "gep_channel.h"  // for GepChannel
 #include "utils.h"  // for set_socket_no_delay, etc
 
+using namespace libgep_utils;
 
 GepChannelArray::GepChannelArray(const std::string &name, GepProtocol *proto,
                                  int max_channels, const GepVFT *ops,

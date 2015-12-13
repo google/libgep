@@ -15,6 +15,8 @@
 
 #include "utils.h"  // for SET_UINT32, UINT32, snprintf_printable
 
+using namespace libgep_utils;
+
 const int64_t kDefaultSelectTimeUsec = secs_to_usecs(1);
 
 GepProtocol::GepProtocol(int port)

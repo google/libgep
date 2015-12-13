@@ -24,6 +24,8 @@
 #include "gep_protocol.h"  // for GepProtocol, etc
 #include "utils.h"  // for LOG_ERROR, gep_log, etc
 
+using namespace libgep_utils;
+
 static const uint32_t kReconnectRetryDelaySecs = 5;
 
 GepClient::GepClient(const std::string &name, void *context,
