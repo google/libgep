@@ -97,6 +97,7 @@ int GepChannelArray::OpenServerSocket() {
 }
 
 int GepChannelArray::Stop() {
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   if (server_socket_ >= 0) {
     gep_log(LOG_DEBUG,
             "%s(*):GepChannelArray::Stop(), closing service socket %d",
@@ -112,7 +113,7 @@ int GepChannelArray::Stop() {
 }
 
 int GepChannelArray::AddChannel(int socket) {
-  std::lock_guard<std::mutex> lock(gep_channel_vector_lock_);
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   if (gep_channel_vector_.size() >= max_channels_) {
     gep_log(LOG_ERROR,
             "%s(*):Error-Too many clients", name_.c_str());
@@ -150,6 +151,7 @@ int GepChannelArray::AcceptConnection() {
 
 // Returns -1 if any of the channels fails, 0 otherwise
 int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg) {
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   // send the message to all open GepChannel's
   int ret = 0;
   for (auto &gep_channel_ptr : gep_channel_vector_) {
@@ -163,6 +165,7 @@ int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg) {
 // Returns -1 if the message couldn't be sent, 0 otherwise
 int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg,
                                  int id) {
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   // send the message to a specific GepChannel's
   for (auto &gep_channel_ptr : gep_channel_vector_) {
     if (gep_channel_ptr->IsOpenSocket() && id == gep_channel_ptr->GetId())
@@ -172,17 +175,17 @@ int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg,
 }
 
 int GepChannelArray::GetVectorSize() {
-  std::lock_guard<std::mutex> lock(gep_channel_vector_lock_);
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   return gep_channel_vector_.size();
 }
 
 int GepChannelArray::GetVectorSocket(int i) {
-  std::lock_guard<std::mutex> lock(gep_channel_vector_lock_);
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   return gep_channel_vector_[i]->GetSocket();
 }
 
 void GepChannelArray::GetVectorReadFds(int *max_fds, fd_set *read_fds) {
-  std::lock_guard<std::mutex> lock(gep_channel_vector_lock_);
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   for (const auto &gep_channel_ptr : gep_channel_vector_) {
     int socket = gep_channel_ptr->GetSocket();
     if (socket < 0) {
@@ -197,7 +200,7 @@ void GepChannelArray::GetVectorReadFds(int *max_fds, fd_set *read_fds) {
 }
 
 void GepChannelArray::RecvData(fd_set *read_fds) {
-  std::lock_guard<std::mutex> lock(gep_channel_vector_lock_);
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   // On all opened channels:
   //   * handle incoming requests from GEP clients
   //   * check for timeout

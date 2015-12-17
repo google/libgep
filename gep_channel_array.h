@@ -68,7 +68,7 @@ class GepChannelArray {
   // GEP channel vector (one per client)
   std::vector<std::shared_ptr<GepChannel>> gep_channel_vector_;
   // mutex to protect gep_channel_vector_
-  std::mutex gep_channel_vector_lock_;
+  std::recursive_mutex gep_channel_vector_lock_;
 
   // socket accepting conns for new ctrl channels
   int server_socket_;
