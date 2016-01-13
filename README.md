@@ -1,7 +1,10 @@
-The GEP Protocol
-================
+GEP: A Generic, Protobuf-Based Client-Server Protocol
+=====================================================
 
 \[This document lives at go/gfiber.gep\]
+
+Introduction
+------------
 
 GEP (Generic Event Protobuf aka Generic Eh... Protobuf) is a generic
 protocol to implement asynchronous, protobuf-based, N-clients/1-server
@@ -38,15 +41,16 @@ message to the receiver, and it does not wait for an answer from the receiver.
 If your protocol needs status/return messages, they need be implemented on top
 of GEP.
 
-The asynchronous behavior is coherent with the operation of the main user, the
-Mints protocol, where one server (sagesrv) sends and receives messages to/from
-multiple clients. The use of protobuf messages allows both clients and servers
-that keep their data structures as protobufs themselves. This makes the code
-extremely simple, and very easy to serialize (e.g. dump state in the logs in a
-systematic way).
+The asynchronous behavior is coherent with the operation of the main user,
+where one server sends and receives messages to/from multiple clients.
+The use of protobuf messages allows both clients and servers that keep
+their data structures as protobufs themselves. This makes the code
+extremely simple, and very easy to serialize (e.g. dump state in the
+logs in a systematic way).
 
-There is an implementation for the GEP protocol in mcastcapture. The GEP
-protocol is the basis for the implementation of:
+The implementation for the GEP protocol is in the
+[gfiber repo](https://gfiber-internal.googlesource.com/vendor/google/libgep).
+The GEP protocol is the basis for the implementation of:
 
 (1) the [Mints protocol](https://go/gfiber.mints), which is used to
 allow communication between sagesrv and the fiber-ads CPE ads manager.
@@ -161,6 +165,7 @@ a very simple wire format:
        |                              ...                              |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
+    Figure 3: A GEP protocol packet in the wire.
 
 Where:
 

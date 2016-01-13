@@ -1,6 +1,4 @@
 // GEP (Generic Event Protobuf aka Generic Eh... Protobuf) protocol
-//
-// see go/gfiber.gep for more information.
 
 #ifndef _GEP_PROTOCOL_H_
 #define _GEP_PROTOCOL_H_

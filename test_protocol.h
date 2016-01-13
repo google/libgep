@@ -11,7 +11,7 @@
 
 #include "gep_protocol.h"  // for MakeTag, GepProtocol
 
-// Sagesrv internals protocol
+// Test protocol
 class TestProtocol : public GepProtocol {
  public:
   explicit TestProtocol(int port = kPort);
