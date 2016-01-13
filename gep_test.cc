@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include <atomic>
+#include <mutex>
 #include <stddef.h>  // for NULL
 #include <string>  // for string
 #include <unistd.h>  // for usleep
@@ -38,6 +39,10 @@ const char kControlMessagePongStr[] = R"EOF(
 command: COMMAND_PONG
 )EOF";
 
+const char kControlMessageGetLockStr[] = R"EOF(
+command: COMMAND_GET_LOCK
+)EOF";
+
 const char kInvalidMessage[] = "geppcmd3\000\000\000\001x";
 const char kHugeInvalidMessage[] = "geppcmd3\377\377\377\377yy";
 const char kUnsupportedMessage[] = "geppxyza\000\000\000\001x";
@@ -47,11 +52,13 @@ static Command3 kOriginalCommand3;
 static Command4 kOriginalCommand4;
 static ControlMessage kControlMessagePing;
 static ControlMessage kControlMessagePong;
+static ControlMessage kControlMessageGetLock;
 
 class GepTest : public ::testing::Test {
  public:
   static void DoSync();
-  void ServerPusherThread();
+  void SenderPusherThread();
+  void SenderLockThread();
 
   // protocol object callbacks: These are object (non-static) callback
   // methods, which is handy for the callers.
@@ -69,7 +76,7 @@ class GepTest : public ::testing::Test {
 
   void SetUp();
   void TearDown();
-  static void WaitForSync(int number);
+  static bool WaitForSync(int number);
 
   TestProtocol *cproto_;
   TestProtocol *sproto_;
@@ -81,6 +88,13 @@ class GepTest : public ::testing::Test {
   // ready flag
   static std::atomic<bool> ready_;
 
+  // other sync flags
+  static std::atomic<bool> stage1_;
+  static std::atomic<bool> stage2_;
+
+  // lock for the CallbackCrossed test
+  std::mutex non_gep_lock_;
+
  private:
   static std::atomic<int> synced_;
 };
@@ -89,6 +103,8 @@ int64_t GepTest::kWaitTimeoutUsecs = secs_to_usecs(6);
 void* GepTest::context_ = nullptr;
 std::atomic<int> GepTest::synced_(0);
 std::atomic<bool> GepTest::ready_(false);
+std::atomic<bool> GepTest::stage1_(false);
+std::atomic<bool> GepTest::stage2_(false);
 
 const GepVFT kGepTestOps = {
   {TestProtocol::MSG_TAG_COMMAND_1, &RecvMessage<GepTest, Command1>},
@@ -128,18 +144,29 @@ bool GepTest::Recv(const ControlMessage &msg) {
     // send pong message
     GepChannelArray *eca = server_->GetGepChannelArray();
     eca->SendMessage(kControlMessagePong);
+  } else if (ProtobufEqual(kControlMessageGetLock, msg)) {
+    // let the main thread know the server thread is in the callback
+    stage1_ = true;
+    // wait until the server thread allows us to proceed
+    while (!stage2_)
+      std::this_thread::yield();
+    // get the non-GEP mutex
+    non_gep_lock_.lock();
+    // release the non-GEP mutex
+    non_gep_lock_.unlock();
   }
   DoSync();
   return true;
 }
 
-void GepTest::WaitForSync(int number) {
+bool GepTest::WaitForSync(int number) {
   // ensure both sides can receive their messages
   int64_t max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
   while (synced_ < number && GetUnixTimeUsec() < max_time)
     usleep(1000);
   // ensure we did not timeout
   EXPECT_GE(synced_, number);
+  return (synced_ >= number);
 }
 
 void GepTest::SetUpTestCase() {
@@ -186,6 +213,8 @@ void GepTest::SetUp() {
                                    &kControlMessagePing));
   EXPECT_TRUE(cproto_->Unserialize(kControlMessagePongStr,
                                    &kControlMessagePong));
+  EXPECT_TRUE(cproto_->Unserialize(kControlMessageGetLockStr,
+                                   &kControlMessageGetLock));
 
   // start server
   server_->GetProto()->SetPort(0);
@@ -242,7 +271,7 @@ TEST_F(GepTest, EndToEnd) {
   WaitForSync(2);
 }
 
-void GepTest::ServerPusherThread() {
+void GepTest::SenderPusherThread() {
   // wait for the ready signal
   while (!ready_)
     std::this_thread::yield();
@@ -257,14 +286,14 @@ TEST_F(GepTest, ParallelEndToEnd) {
   GepChannel *ec = client_->GetGepChannel();
   ec->SendMessage(kOriginalCommand1);
 
-  // start the server pusher threads
+  // start the sender pusher threads
   ready_ = false;
   std::vector<std::thread> threads;
   for (int i = 0; i < kNumWriters; ++i)
-    threads.push_back(std::thread(&GepTest::ServerPusherThread, this));
+    threads.push_back(std::thread(&GepTest::SenderPusherThread, this));
   ready_ = true;
 
-  // wait for all the clients to finish
+  // wait for all the sender pushers to finish
   for (auto &th : threads)
     th.join();
 
@@ -439,4 +468,37 @@ TEST_F(GepTest, CallbackDeadlock) {
   ec->SendMessage(kControlMessagePing);
 
   WaitForSync(2);
+}
+
+void GepTest::SenderLockThread() {
+  // ensure the sender locks the non-GEP mutex
+  std::lock_guard<std::mutex> lock(non_gep_lock_);
+
+  // wait for the server thread to get into the callback
+  while (!stage1_)
+    std::this_thread::yield();
+
+  // let the server thread proceed
+  stage2_ = true;
+
+  // push any message in the server
+  GepChannelArray *eca = server_->GetGepChannelArray();
+  eca->SendMessage(kOriginalCommand3);
+}
+
+TEST_F(GepTest, CallbackCrossed) {
+  // init sync mechanism
+  stage1_ = false;
+  stage2_ = false;
+
+  // push message in the client
+  GepChannel *ec = client_->GetGepChannel();
+  ec->SendMessage(kControlMessageGetLock);
+
+  // start the sender thread
+  auto th = std::thread(&GepTest::SenderLockThread, this);
+
+  // wait for all the sender thread to finish
+  if (WaitForSync(1))
+    th.join();
 }

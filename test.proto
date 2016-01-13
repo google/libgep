@@ -24,6 +24,7 @@ message ControlMessage {
   enum Command {
     COMMAND_PING = 0;
     COMMAND_PONG = 1;
+    COMMAND_GET_LOCK = 2;
   }
   optional Command command = 1 [default = COMMAND_PING];
 }
