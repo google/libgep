@@ -52,6 +52,7 @@ install:
 		gep_client.h \
 		gep_channel.h \
 		gep_channel_array.h \
+		gep_utils.h \
 		$(DESTDIR)/usr/include/
 	$(INSTALL) -D -m 0755 \
 		libgepserver.a \

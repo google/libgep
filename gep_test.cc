@@ -8,6 +8,7 @@
 #include "gep_protocol.h"
 #include "gep_server.h"
 #include "gep_client.h"
+#include "gep_utils.h"
 #include "test.pb.h"
 #include "test_protocol.h"
 #include "utils.h"
@@ -52,15 +53,12 @@ class GepTest : public ::testing::Test {
   static void DoSync();
   void ServerPusherThread();
 
-  // callbacks
-  static int RecvCommand1(const ::google::protobuf::Message &msg,
-                                void *context);
-  static int RecvCommand3(const ::google::protobuf::Message &msg,
-                             void *context);
-  static int RecvCommand4(const ::google::protobuf::Message &msg,
-                               void *context);
-  static int RecvControlMessage(const ::google::protobuf::Message &msg,
-                                void *context);
+  // protocol object callbacks: These are object (non-static) callback
+  // methods, which is handy for the callers.
+  virtual bool Recv(const Command1 &msg);
+  virtual bool Recv(const Command3 &msg);
+  virtual bool Recv(const Command4 &msg);
+  virtual bool Recv(const ControlMessage &msg);
 
   // maximum wait for any busy loop
   static int64_t kWaitTimeoutUsecs;
@@ -93,59 +91,46 @@ std::atomic<int> GepTest::synced_(0);
 std::atomic<bool> GepTest::ready_(false);
 
 const GepVFT kGepTestOps = {
-  {TestProtocol::MSG_TAG_COMMAND_1, &GepTest::RecvCommand1},
-  {TestProtocol::MSG_TAG_COMMAND_3, &GepTest::RecvCommand3},
-  {TestProtocol::MSG_TAG_COMMAND_4, &GepTest::RecvCommand4},
-  {TestProtocol::MSG_TAG_CONTROL, &GepTest::RecvControlMessage},
+  {TestProtocol::MSG_TAG_COMMAND_1, &RecvMessage<GepTest, Command1>},
+  {TestProtocol::MSG_TAG_COMMAND_3, &RecvMessage<GepTest, Command3>},
+  {TestProtocol::MSG_TAG_COMMAND_4, &RecvMessage<GepTest, Command4>},
+  {TestProtocol::MSG_TAG_CONTROL, &RecvMessage<GepTest, ControlMessage>},
 };
 
 void GepTest::DoSync() {
   synced_++;
 }
 
-int GepTest::RecvCommand1(const ::google::protobuf::Message &msg,
-                                void *context) {
-  const Command1 &csmsg = dynamic_cast<const Command1 &>(msg);
-  // check the result received in the server
-  EXPECT_TRUE(ProtobufEqual(kOriginalCommand1, csmsg));
-  DoSync();
-  return 0;
-}
-
-int GepTest::RecvCommand3(const ::google::protobuf::Message &msg,
-                             void *context) {
-  const Command3 &mimsg = dynamic_cast<const Command3 &>
-      (msg);
+bool GepTest::Recv(const Command1 &msg) {
   // check the msg received in the client
-  EXPECT_TRUE(ProtobufEqual(kOriginalCommand3, mimsg));
+  EXPECT_TRUE(ProtobufEqual(kOriginalCommand1, msg));
   DoSync();
-  return 0;
+  return true;
 }
 
-int GepTest::RecvCommand4(const ::google::protobuf::Message &msg,
-                               void *context) {
-  const Command4 &mimsg = dynamic_cast<const Command4 &>
-      (msg);
+bool GepTest::Recv(const Command3 &msg) {
   // check the msg received in the client
-  EXPECT_TRUE(ProtobufEqual(kOriginalCommand4, mimsg));
+  EXPECT_TRUE(ProtobufEqual(kOriginalCommand3, msg));
   DoSync();
-  return 0;
+  return true;
 }
 
-int GepTest::RecvControlMessage(const ::google::protobuf::Message &msg,
-                                void *context) {
-  const ControlMessage &cmsg = dynamic_cast<const ControlMessage &>(msg);
+bool GepTest::Recv(const Command4 &msg) {
+  // check the msg received in the client
+  EXPECT_TRUE(ProtobufEqual(kOriginalCommand4, msg));
+  DoSync();
+  return true;
+}
+
+bool GepTest::Recv(const ControlMessage &msg) {
   // check the msg received in the server
-  if (ProtobufEqual(kControlMessagePing, cmsg)) {
-    // send pong
-    GepChannel *gep_channel = static_cast<GepChannel *>(context);
-    GepTest *gep_test = static_cast<GepTest *>(gep_channel->GetContext());
-    // push message in the server
-    GepChannelArray *eca = gep_test->server_->GetGepChannelArray();
+  if (ProtobufEqual(kControlMessagePing, msg)) {
+    // send pong message
+    GepChannelArray *eca = server_->GetGepChannelArray();
     eca->SendMessage(kControlMessagePong);
   }
   DoSync();
-  return 0;
+  return true;
 }
 
 void GepTest::WaitForSync(int number) {
