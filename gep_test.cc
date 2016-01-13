@@ -31,11 +31,11 @@ const char kOriginalCommand4Str[] = R"EOF(id: 123456789
 const char kRawCommand4[] = "geppcmd4\000\000\000\015id: 123456789";
 
 const char kControlMessagePingStr[] = R"EOF(
-command: COMMAND_NULL
+command: COMMAND_PING
 )EOF";
 
 const char kControlMessagePongStr[] = R"EOF(
-command: COMMAND_DEBUGLOG
+command: COMMAND_PONG
 )EOF";
 
 const char kInvalidMessage[] = "geppcmd3\000\000\000\001x";
