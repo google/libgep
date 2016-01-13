@@ -200,20 +200,38 @@ void GepChannelArray::GetVectorReadFds(int *max_fds, fd_set *read_fds) {
 }
 
 void GepChannelArray::RecvData(fd_set *read_fds) {
-  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
-  // On all opened channels:
-  //   * handle incoming requests from GEP clients
-  //   * check for timeout
-  for (auto it = gep_channel_vector_.begin();
-       it != gep_channel_vector_.end(); ) {
-    std::shared_ptr<GepChannel> gep_channel_ptr = *it;
-    int socket = gep_channel_ptr->GetSocket();
-    if (socket >= 0 && FD_ISSET(socket, read_fds)) {
-      if (gep_channel_ptr->RecvData() < 0) {
-        it = gep_channel_vector_.erase(it);
-        continue;
+  // select any open channel
+  std::shared_ptr<GepChannel> used_gep_channel_ptr = nullptr;
+  {
+    std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
+    for (auto &gep_channel_ptr : gep_channel_vector_) {
+      int socket = gep_channel_ptr->GetSocket();
+      if (socket >= 0 && FD_ISSET(socket, read_fds)) {
+        used_gep_channel_ptr = gep_channel_ptr;
+        break;
       }
     }
-    ++it;
+  }
+
+  if (used_gep_channel_ptr == nullptr)
+    return;
+
+  // on the open channel:
+  //   * handle incoming request from GEP clients
+  int ret = used_gep_channel_ptr->RecvData();
+
+  //   * check for timeout
+  if (ret < 0) {
+    std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
+    // ensure the gep_channel still exists before deleting it
+    for (auto it = gep_channel_vector_.begin();
+         it != gep_channel_vector_.end(); ) {
+      std::shared_ptr<GepChannel> gep_channel_ptr = *it;
+      if (used_gep_channel_ptr == gep_channel_ptr) {
+        it = gep_channel_vector_.erase(it);
+        break;
+      }
+      ++it;
+    }
   }
 }
