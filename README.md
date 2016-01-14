@@ -3,21 +3,25 @@ GEP: A Generic, Protobuf-Based Client-Server Protocol
 
 \[This document lives at go/gfiber.gep\]
 
+
 Introduction
 ------------
 
 GEP (Generic Event Protobuf aka Generic Eh... Protobuf) is a generic
-protocol to implement asynchronous, protobuf-based, N-clients/1-server
-protocols.
+protocol to implement asynchronous, protocol buffer-based,
+N-clients/1-server protocols.
 
-A protocol is defined as a series of protobuf messages that can be
-exchanged between a client and a server. The idea is to make it very
-easy for a user to create a new protocol by defining:
+A protocol is defined as a series of protocol buffer
+([protobuf](https://developers.google.com/protocol-buffers/?hl=en))
+messages that can be exchanged between a client and a server. The
+idea is to make it very easy for a user to create a new protocol by
+defining:
 
-* (1) the port where the server will listen to requests from (multiple)
+1. the protobuf messages that the protocol will allow passing
+in each direction,
+2. the port where the server will listen to requests from (multiple)
 clients, and
-* (2) the tags/protobuf messages that the protocol will allow passing
-back and forth.
+3. the tags associated to the different protobuf messages.
 
 ![Alt text](http://g.gravizo.com/g?
   digraph G {
@@ -36,10 +40,10 @@ back and forth.
     Figure 1: Diagram of a GEP protocol-based client/server.
 
 
-GEP-based protocols are asynchronous by definition: The sender sends a protobuf
-message to the receiver, and it does not wait for an answer from the receiver.
-If your protocol needs status/return messages, they need be implemented on top
-of GEP.
+GEP-based protocols are asynchronous by definition: The sender sends
+a protobuf message to the receiver, and it does not wait for an answer
+from the receiver. If your protocol needs status/return messages,
+they need be implemented on top of GEP.
 
 The asynchronous behavior is coherent with the operation of the main user,
 where one server sends and receives messages to/from multiple clients.
@@ -47,6 +51,10 @@ The use of protobuf messages allows both clients and servers that keep
 their data structures as protobufs themselves. This makes the code
 extremely simple, and very easy to serialize (e.g. dump state in the
 logs in a systematic way).
+
+
+GEP Usage: Google Fiber
+-----------------------
 
 The implementation for the GEP protocol is in the
 [gfiber repo](https://gfiber-internal.googlesource.com/vendor/google/libgep).
@@ -60,19 +68,62 @@ between SageTV and adsmgr (GEP/SageTV), and
 
 
 
+GEP Manual
+----------
+
+The best way to learn how to use GEP is by checking the provided example,
+called SGP. Check the [SGP Documentation](example/README.md). Note that
+all the example/sgp\_\* files are mostly boilerplate, so it should be
+easy to adapt them for your own protocol.
+
+Note that both the client and server stub classes, when started, will
+create a thread in charge of receiving messages and running the callback
+functions.
+
+
 GEP Operation: Protocol Definition
 ----------------------------------
 
-A GEP protocol can be defined by creating a class that derives from
-GetProtocol, and which implements a couple of functions that map a
-set of unique IDs (aka ``tags'') to the protobuf messages that can
-be passed back and forth between client and server. In particular,
-GetTag() maps a protobuf message to a tag, while GetMessage() maps a
-tag to a protobuf message.
+As mentioned before, a GEP-based protocol is defined by 2 sets of
+protobuf messages (those that clients can send to the server, and
+those that the server can send to the clients), a port number,
+and the per-protobuf message tags.
 
-    $ cat test_protocol.h
+In the future most of this information can be provided by the user
+using something like a
+[grpc](http://www.grpc.io/) service, but currently the user needs
+to define this information in her own C++ class.
+
+The first part is to define the set of messages that clients and
+server can exchange to each other:
+
+
+    $ cat examples/sgp.proto
     ...
-    class TestProtocol : public GepProtocol {
+    message Command1 {
+      optional int64 a = 1;
+      optional int32 b = 2;
+    }
+
+    message Command2 {
+      optional int64 id = 1;
+    }
+    ...
+
+    Figure 2: SGP (a GEP-based protocol) messages.
+
+
+Then, the user must define the protocol as a class (called SGPProtocol
+in this case) that derives from GepProtocol, and which implements a
+couple of functions that map a set of unique IDs (aka ``tags'') to
+the protobuf messages that can be passed back and forth between client
+and server.
+In particular, GetTag() maps a protobuf message to a tag, while
+GetMessage() maps a tag to a protobuf message.
+
+    $ cat example/sgp_protocol.h
+    ...
+    class SGPProtocol : public GepProtocol {
      ...
       // supported messages
       static constexpr uint32_t MSG_TAG_COMMAND_1 =
@@ -86,8 +137,9 @@ tag to a protobuf message.
       virtual ::google::protobuf::Message *GetMessage(uint32_t tag);
     };
     ...
-    $ cat test_protocol.cc
-    uint32_t TestProtocol::GetTag(const ::google::protobuf::Message *msg) {
+
+    $ cat example/sgp_protocol.cc
+    uint32_t SGPProtocol::GetTag(const ::google::protobuf::Message *msg) {
       if (dynamic_cast<const Command1Message *>(msg) != NULL)
         return MSG_TAG_COMMAND_1;
       else if (dynamic_cast<const Command2Message *>(msg) != NULL)
@@ -95,7 +147,7 @@ tag to a protobuf message.
       ...
     }
 
-    ::google::protobuf::Message *TestProtocol::GetMessage(uint32_t tag) {
+    ::google::protobuf::Message *SGPProtocol::GetMessage(uint32_t tag) {
       ::google::protobuf::Message *msg = NULL;
       switch (tag) {
         case MSG_TAG_COMMAND_1:
@@ -109,19 +161,51 @@ tag to a protobuf message.
       return msg;
     }
 
-    Figure 2: Implementation of TestProtocol, a GEP-based protocol.
+    Figure 3: Implementation of SGPProtocol.
 
 
 GEP Operation: Client/Server Definition
 ---------------------------------------
 
-After defining the protocol, you must define the client and the server
-(both are very similar). The client must derive from GepClient, and
-the server from GepServer (these classes implement the network
-operations). Then, both client and server must be initialized with a
-virtual function table (GepVFT) that maps the subset of tags that each
-side wants to listen to, to the callback that must be called on receiving
-one.
+After defining the protocol, the user must define the client and server
+classes (both are very similar). The client must derive from GepClient,
+and the server from GepServer (these classes implement the network
+operations). Both must include the receiver callbacks that will be
+called when a message is received.
+
+Both client and server must be initialized with a virtual function table
+(GepVFT) that maps each tag a side wants to listen to, to the callback
+that must be called on receiving one.
+
+
+    $ cat example/sgp_client.cc
+    ...
+    class SGPClient: public GepClient {
+     public:
+      SGPClient();
+      ...
+
+      // protocol object callbacks: These are object (non-static) callback
+      // methods, which is handy for the callers.
+      virtual bool Recv(const Command1 &msg) = 0;
+      virtual bool Recv(const Command2 &msg) = 0;
+      ...
+    };
+
+    const GepVFT kSGPClientOps = {
+      {SGPProtocol::MSG_TAG_COMMAND_1, &RecvMessage<SGPClient, Command1>},
+      {SGPProtocol::MSG_TAG_COMMAND_2, &RecvMessage<SGPClient, Command2>},
+      ...
+    };
+
+    Figure 4: Implementation of SGPClient.
+
+
+The SGPServer implementation is very similar to that of SGPClient.
+
+
+GEP Implementation Details
+--------------------------
 
 In the client side, a GepChannel object provides a SendMessage()
 function that allows sending protobuf messages to the server. It also
@@ -145,8 +229,9 @@ The GepServer object performs the obvious server reception side (select
 server and per-client sockets, create an object for new clients,
 receive message and dispatch it for messages).
 
-GEP Implementation
-------------------
+
+GEP Protocol
+------------
 
 Any GEP-derived protocol encodes a protobuf message in the wire using
 a very simple wire format:
@@ -165,7 +250,7 @@ a very simple wire format:
        |                              ...                              |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    Figure 3: A GEP protocol packet in the wire.
+    Figure 5: A GEP protocol packet in the wire.
 
 Where:
 
@@ -178,4 +263,18 @@ Where:
   - message: a serialized protobuf message [value\_len bytes]. We are
     currently using a text protobuf. This allows easy debugging of wire
     packets.
+
+
+Future Work
+-----------
+
+As mentioned before, currently GEP-based protocols need to adapt some
+amount of boilerplate (see the example/ directory) for each new protocol.
+Typically, the user needs to copy the protocol, client, and server stubs
+from an example, and fill them with her data.
+
+In the future most of this information can be provided by the user
+using something like a
+[grpc](http://www.grpc.io/) service.
+
 

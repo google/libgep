@@ -1,18 +1,18 @@
 #include "gtest/gtest.h"
 
 #include <atomic>
+#include <gep_protocol.h>
+#include <gep_client.h>
+#include <gep_server.h>
+#include <gep_utils.h>
 #include <mutex>
 #include <stddef.h>  // for NULL
 #include <string>  // for string
 #include <unistd.h>  // for usleep
 
-#include "gep_protocol.h"
-#include "gep_server.h"
-#include "gep_client.h"
-#include "gep_utils.h"
+#include "../src/utils.h"
 #include "test.pb.h"
 #include "test_protocol.h"
-#include "utils.h"
 
 using namespace libgep_utils;
 

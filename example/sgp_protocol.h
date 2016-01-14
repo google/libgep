@@ -1,24 +1,24 @@
-// GEP/Test protocol
+// GEP/SGP protocol
 //
-// Test is a GEP-based protocol.
+// SGP is a GEP-based protocol.
 //
 
-#ifndef _TEST_PROTOCOL_H_
-#define _TEST_PROTOCOL_H_
+#ifndef _SGP_PROTOCOL_H_
+#define _SGP_PROTOCOL_H_
 
+#include <gep_protocol.h>  // for MakeTag, GepProtocol
 #include <google/protobuf/message.h>  // for Message
 #include <stdint.h>  // for uint32_t
 
-#include "gep_protocol.h"  // for MakeTag, GepProtocol
 
-// Test protocol
-class TestProtocol : public GepProtocol {
+// SGP protocol
+class SGPProtocol : public GepProtocol {
  public:
-  explicit TestProtocol(int port = kPort);
-  virtual ~TestProtocol() {}
+  explicit SGPProtocol(int port = kPort);
+  virtual ~SGPProtocol() {}
 
   // basic protocol constants
-  static const int kPort = 6999;
+  static const int kPort = 3456;
 
   // supported messages
   static constexpr uint32_t MSG_TAG_COMMAND_1 =
@@ -38,4 +38,4 @@ class TestProtocol : public GepProtocol {
   virtual ::google::protobuf::Message *GetMessage(uint32_t tag);
 };
 
-#endif  // _TEST_PROTOCOL_H_
+#endif  // _SGP_PROTOCOL_H_

@@ -4,6 +4,7 @@
 #define _GEP_CLIENT_H_
 
 #include <atomic>  // for atomic
+#include <google/protobuf/message.h>  // for Message
 #include <string>  // for string
 #include <thread>  // for thread
 

@@ -12,6 +12,7 @@
 #include "gep_server.h"
 
 #include <errno.h>  // for errno, EINTR
+#include <google/protobuf/message.h>  // for Message
 #include <stdint.h>  // for int64_t
 #include <stdio.h>  // for NULL
 #include <sys/select.h>  // for FD_ISSET, FD_SET, select, etc
@@ -20,7 +21,6 @@
 #include <thread>  // NOLINT
 #include <unistd.h>  // for syscall, pid_t
 
-#include "gep_channel.h"  // for GepChannel
 #include "gep_channel_array.h"  // for GepChannelArray
 #include "utils.h"  // for MAX
 

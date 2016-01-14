@@ -1,4 +1,4 @@
-// A protocol buffer representation of a test API.
+// A protocol buffer representation of an example API.
 
 syntax = "proto2";
 
@@ -18,13 +18,10 @@ message Command3 {
 
 message Command4 {
   optional int64 id = 1;
-}
-
-message ControlMessage {
   enum Command {
-    COMMAND_PING = 0;
-    COMMAND_PONG = 1;
-    COMMAND_GET_LOCK = 2;
+    COMMAND_40 = 0;
+    COMMAND_41 = 1;
+    COMMAND_42 = 2;
   }
-  optional Command command = 1 [default = COMMAND_PING];
+  optional Command command = 2 [default = COMMAND_40];
 }

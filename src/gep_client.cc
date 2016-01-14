@@ -12,6 +12,7 @@
 #include "gep_client.h"
 
 #include <errno.h>  // for errno, EINTR
+#include <google/protobuf/message.h>  // for Message
 #include <stdint.h>  // for int64_t, uint32_t
 #include <stdio.h>  // for NULL
 #include <sys/select.h>  // for FD_ISSET, FD_SET, select, etc

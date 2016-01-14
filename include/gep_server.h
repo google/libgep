@@ -6,6 +6,7 @@
 #include <atomic>
 #include <google/protobuf/message.h>  // for Message
 #include <thread>  // for thread
+#include <string>  // for string
 #include <stddef.h>  // for NULL
 
 #include "gep_channel_array.h"

@@ -1,0 +1,30 @@
+// A protocol buffer representation of an example API.
+
+syntax = "proto2";
+
+
+message Command1 {
+  optional int64 a = 1;
+  optional int32 b = 2;
+}
+
+message Command2 {
+  optional int64 id = 1;
+}
+
+message Command3 {
+  optional int64 id = 1;
+}
+
+message Command4 {
+  optional int64 id = 1;
+}
+
+message ControlMessage {
+  enum Command {
+    COMMAND_PING = 0;
+    COMMAND_PONG = 1;
+    COMMAND_GET_LOCK = 2;
+  }
+  optional Command command = 1 [default = COMMAND_PING];
+}

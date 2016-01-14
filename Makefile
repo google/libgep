@@ -1,63 +1,38 @@
-TOP:=.
-TARGETS=libgepserver.a libgepclient.a
-TEST_TARGETS= gep_test
-include rules.mk
+default: all
 
-CPPFLAGS+=-I. -I..
-LIBS+=-lprotobuf
+DIRS=include src test example
 
-all: .protos_done
-	$(MAKE) all_for_real_this_time
+PREFIX=/usr
+BINDIR=$(DESTDIR)$(PREFIX)/bin
+LIBDIR=$(DESTDIR)$(PREFIX)/lib
 
-all_for_real_this_time: $(TARGETS)
 
-.protos_done: test.proto
-	$(MAKE) test.pb.h
+all:     .protos_done $(addsuffix /all,$(DIRS))
+test:    $(addsuffix /test,$(DIRS))
+clean:   $(addsuffix /clean,$(DIRS))
+install: $(addsuffix /install,$(DIRS))
+install-libs: $(addsuffix /install-libs,$(DIRS))
 
-HOST_PROTOC ?= $(HOSTDIR)/usr/bin/protoc
-PROTOFLAGS=--cpp_out=. -I.
+test/test example/all : src/all
 
-test.pb.h: test.proto
-	echo "Building test.pb.h"
-	$(HOST_PROTOC) $(PROTOFLAGS) $<
+.protos_done: test/test.proto example/sgp.proto
+	$(MAKE) -C test test.pb.h
+	$(MAKE) -C example sgp.pb.h
 
-libgepserver.a: \
-    utils.o \
-    gep_protocol.o \
-    gep_channel.o \
-    gep_channel_array.o \
-    gep_server.o
-	$(make_lib)
+%/all:
+	$(MAKE) -C $* all
 
-libgepclient.a: \
-    utils.o \
-    gep_protocol.o \
-    gep_channel.o \
-    gep_channel_array.o \
-    gep_client.o
-	$(make_lib)
+%/test:
+	$(MAKE) -C $* test
 
-$(TEST_TARGETS): LIBS+=-lprotobuf-lite -lprotobuf -lgtest
+%/clean:
+	$(MAKE) -C $* clean
 
-$(TEST_TARGETS): \
-    libgepserver.a \
-    libgepclient.a \
-    test.pb.t.o \
-    test_protocol.t.o
+%/install:
+	$(MAKE) -C $* install
 
-install:
-	$(INSTALL) -D -m 0444 \
-		gep_server.h \
-		gep_protocol.h \
-		gep_client.h \
-		gep_channel.h \
-		gep_channel_array.h \
-		gep_utils.h \
-		$(DESTDIR)/usr/include/
-	$(INSTALL) -D -m 0755 \
-		libgepserver.a \
-		libgepclient.a \
-		$(DESTDIR)/usr/lib/
+%/install-libs:
+	$(MAKE) -C $* install-libs
 
-clean::
-	rm -f *.pb.* .protos_done
+clean:
+	rm -rf *~ .*~ */*.pb.* *.log .protos_done

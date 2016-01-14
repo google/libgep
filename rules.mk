@@ -59,8 +59,8 @@ LDFLAGS+=-rdynamic
 LIBS=-lpthread -lrt
 
 # add current project version
-MCASTCAPTURE_VERSION:= $(shell git describe --abbrev=4 --dirty --always --tags)
-CPPFLAGS+=-DMCASTCAPTURE_VERSION=\"$(MCASTCAPTURE_VERSION)\"
+LIBGEP_VERSION:= $(shell git describe --abbrev=4 --dirty --always --tags)
+CPPFLAGS+=-DLIBGEP_VERSION=\"$(LIBGEP_VERSION)\"
 
 # Thread Sanitizer
 ifneq ($(USE_TSAN),)
