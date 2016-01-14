@@ -40,7 +40,7 @@ class GepClient {
 
   // send API
   // Returns status value (0 if all ok, -1 for any error)
-  int SendMessage(const ::google::protobuf::Message &msg);
+  virtual int Send(const ::google::protobuf::Message &msg);
 
   // Returns how many times the client reconnected to the server socket.
   int GetReconnectCount() { return reconnect_count_; }

@@ -88,7 +88,7 @@ void GepClient::Reconnect() {
   }
 }
 
-int GepClient::SendMessage(const ::google::protobuf::Message &msg) {
+int GepClient::Send(const ::google::protobuf::Message &msg) {
   return gep_channel_->SendMessage(msg);
 }
 

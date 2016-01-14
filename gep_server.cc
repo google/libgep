@@ -117,10 +117,10 @@ void GepServer::RunThread() {
           name_.c_str(), tid);
 }
 
-int GepServer::SendMessage(const ::google::protobuf::Message &msg) {
+int GepServer::Send(const ::google::protobuf::Message &msg) {
   return gep_channel_array_->SendMessage(msg);
 }
 
-int GepServer::SendMessage(const ::google::protobuf::Message &msg, int id) {
+int GepServer::Send(const ::google::protobuf::Message &msg, int id) {
   return gep_channel_array_->SendMessage(msg, id);
 }

@@ -50,8 +50,8 @@ class GepServer {
 
   // send API
   // Returns status value (0 if all ok, -1 for any error)
-  int SendMessage(const ::google::protobuf::Message &msg);
-  int SendMessage(const ::google::protobuf::Message &msg, int id);
+  virtual int Send(const ::google::protobuf::Message &msg);
+  virtual int Send(const ::google::protobuf::Message &msg, int id);
 
  private:
   std::string name_;
