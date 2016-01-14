@@ -9,7 +9,6 @@
 #include <google/protobuf/message.h>  // for Message
 
 #include "gep_protocol.h"  // for GepProtocol (ptr only), etc
-#include "utils.h"
 
 
 // Class used to manage a communication channel where protobuf messages can
