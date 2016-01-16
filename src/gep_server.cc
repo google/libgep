@@ -34,7 +34,7 @@ GepServer::GepServer(const std::string &name, int max_channels,
       ops_(ops),
       thread_ctrl_(false) {
   // init GEP channel array
-  gep_channel_array_ = new GepChannelArray("gep_channel_array", proto_,
+  gep_channel_array_ = new GepChannelArray("gep_channel_array", this, proto_,
                                            max_channels, ops_, context_);
 }
 

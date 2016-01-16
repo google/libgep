@@ -34,10 +34,10 @@ class GepServer {
   // and creating the service thread that accepts and manages GEP channel
   // connections.
   // Returns an error code (0 if ok, <0 if error).
-  int Start();
+  virtual int Start();
   // Stops the given GEP server by terminating the server thread
   // and closing all open GEP channel connections.
-  void Stop();
+  virtual void Stop();
 
   // default function run by the server thread
   virtual void RunThread();
@@ -53,6 +53,10 @@ class GepServer {
   // Returns status value (0 if all ok, -1 for any error)
   virtual int Send(const ::google::protobuf::Message &msg);
   virtual int Send(const ::google::protobuf::Message &msg, int id);
+
+  // client (dis)connection callbacks
+  virtual void AddClient(int id) { }
+  virtual void DelClient(int id) { }
 
  private:
   std::string name_;

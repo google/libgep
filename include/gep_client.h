@@ -25,11 +25,11 @@ class GepClient {
   // Starts the given GEP client by creating the service thread and
   // connecting to the GEP server.
   // Returns an error code (0 if ok, <0 if problems)
-  int Start();
+  virtual int Start();
   // Stop the given GEP client by terminating the thread
   // and closing the GEP channel connections.
   // Returns an error code (0 if ok, <0 if problems)
-  void Stop();
+  virtual void Stop();
 
   // default function run by the server thread
   virtual void RunThread();

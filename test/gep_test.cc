@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <atomic>
 #include <gep_protocol.h>
 #include <gep_client.h>
@@ -54,6 +55,32 @@ static ControlMessage kControlMessagePing;
 static ControlMessage kControlMessagePong;
 static ControlMessage kControlMessageGetLock;
 
+class TestServer : public GepServer {
+ public:
+  TestServer(const std::string &name, int max_channels, void *context,
+             GepProtocol *proto, const GepVFT* ops)
+    : GepServer(name, max_channels, context, proto, ops) {
+  }
+
+  virtual int Start() {
+    ids_.clear();
+    return GepServer::Start();
+  }
+
+  std::vector<int> ids_;
+
+  virtual void AddClient(int id) {
+    ids_.push_back(id);
+  }
+  virtual void DelClient(int id) {
+    auto it = find(ids_.begin(), ids_.end(), id);
+    // ensure the client exists
+    EXPECT_NE(ids_.end(), it);
+    // remove it
+    ids_.erase(it);
+  }
+};
+
 class GepTest : public ::testing::Test {
  public:
   static void DoSync();
@@ -62,10 +89,10 @@ class GepTest : public ::testing::Test {
 
   // protocol object callbacks: These are object (non-static) callback
   // methods, which is handy for the callers.
-  virtual bool Recv(const Command1 &msg);
-  virtual bool Recv(const Command3 &msg);
-  virtual bool Recv(const Command4 &msg);
-  virtual bool Recv(const ControlMessage &msg);
+  virtual bool Recv(const Command1 &msg, int id);
+  virtual bool Recv(const Command3 &msg, int id);
+  virtual bool Recv(const Command4 &msg, int id);
+  virtual bool Recv(const ControlMessage &msg, int id);
 
   // maximum wait for any busy loop
   static int64_t kWaitTimeoutUsecs;
@@ -81,7 +108,7 @@ class GepTest : public ::testing::Test {
   TestProtocol *cproto_;
   TestProtocol *sproto_;
 
-  GepServer *server_;
+  TestServer *server_;
   GepClient *client_;
   static void *context_;
 
@@ -107,38 +134,38 @@ std::atomic<bool> GepTest::stage1_(false);
 std::atomic<bool> GepTest::stage2_(false);
 
 const GepVFT kGepTestOps = {
-  {TestProtocol::MSG_TAG_COMMAND_1, &RecvMessage<GepTest, Command1>},
-  {TestProtocol::MSG_TAG_COMMAND_3, &RecvMessage<GepTest, Command3>},
-  {TestProtocol::MSG_TAG_COMMAND_4, &RecvMessage<GepTest, Command4>},
-  {TestProtocol::MSG_TAG_CONTROL, &RecvMessage<GepTest, ControlMessage>},
+  {TestProtocol::MSG_TAG_COMMAND_1, &RecvMessageId<GepTest, Command1>},
+  {TestProtocol::MSG_TAG_COMMAND_3, &RecvMessageId<GepTest, Command3>},
+  {TestProtocol::MSG_TAG_COMMAND_4, &RecvMessageId<GepTest, Command4>},
+  {TestProtocol::MSG_TAG_CONTROL, &RecvMessageId<GepTest, ControlMessage>},
 };
 
 void GepTest::DoSync() {
   synced_++;
 }
 
-bool GepTest::Recv(const Command1 &msg) {
+bool GepTest::Recv(const Command1 &msg, int id) {
   // check the msg received in the client
   EXPECT_TRUE(ProtobufEqual(kOriginalCommand1, msg));
   DoSync();
   return true;
 }
 
-bool GepTest::Recv(const Command3 &msg) {
+bool GepTest::Recv(const Command3 &msg, int id) {
   // check the msg received in the client
   EXPECT_TRUE(ProtobufEqual(kOriginalCommand3, msg));
   DoSync();
   return true;
 }
 
-bool GepTest::Recv(const Command4 &msg) {
+bool GepTest::Recv(const Command4 &msg, int id) {
   // check the msg received in the client
   EXPECT_TRUE(ProtobufEqual(kOriginalCommand4, msg));
   DoSync();
   return true;
 }
 
-bool GepTest::Recv(const ControlMessage &msg) {
+bool GepTest::Recv(const ControlMessage &msg, int id) {
   // check the msg received in the server
   if (ProtobufEqual(kControlMessagePing, msg)) {
     // send pong message
@@ -189,8 +216,8 @@ void GepTest::SetUp() {
   context_ = reinterpret_cast<void *>(this);
 
   // create GEP server
-  server_ = new GepServer("gep_test_server", kMaxChannels, context_, sproto_,
-                          &kGepTestOps);
+  server_ = new TestServer("gep_test_server", kMaxChannels, context_, sproto_,
+                           &kGepTestOps);
   ASSERT_TRUE(server_);
 
   // create GEP client
@@ -238,6 +265,8 @@ void GepTest::TearDown() {
   // stop client and server
   client_->Stop();
   server_->Stop();
+  // ensure all clients have been deleted
+  EXPECT_TRUE(server_->ids_.empty());
   // delete them
   delete client_;
   delete server_;

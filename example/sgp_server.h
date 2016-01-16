@@ -21,17 +21,17 @@ class SGPServer: public GepServer {
 
   // protocol object callbacks: These are object (non-static) callback
   // methods, which is handy for the callers.
-  virtual bool Recv(const Command1 &msg) = 0;
-  virtual bool Recv(const Command2 &msg) = 0;
-  virtual bool Recv(const Command3 &msg) = 0;
-  virtual bool Recv(const Command4 &msg) = 0;
+  virtual bool Recv(const Command1 &msg, int id) = 0;
+  virtual bool Recv(const Command2 &msg, int id) = 0;
+  virtual bool Recv(const Command3 &msg, int id) = 0;
+  virtual bool Recv(const Command4 &msg, int id) = 0;
 };
 
 const GepVFT kSGPServerOps = {
-  {SGPProtocol::MSG_TAG_COMMAND_1, &RecvMessage<SGPServer, Command1>},
-  {SGPProtocol::MSG_TAG_COMMAND_2, &RecvMessage<SGPServer, Command2>},
-  {SGPProtocol::MSG_TAG_COMMAND_3, &RecvMessage<SGPServer, Command3>},
-  {SGPProtocol::MSG_TAG_COMMAND_4, &RecvMessage<SGPServer, Command4>},
+  {SGPProtocol::MSG_TAG_COMMAND_1, &RecvMessageId<SGPServer, Command1>},
+  {SGPProtocol::MSG_TAG_COMMAND_2, &RecvMessageId<SGPServer, Command2>},
+  {SGPProtocol::MSG_TAG_COMMAND_3, &RecvMessageId<SGPServer, Command3>},
+  {SGPProtocol::MSG_TAG_COMMAND_4, &RecvMessageId<SGPServer, Command4>},
 };
 
 #endif  // _SGP_SERVER_H_

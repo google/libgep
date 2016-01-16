@@ -23,22 +23,12 @@ in each direction,
 clients, and
 3. the tags associated to the different protobuf messages.
 
-![Alt text](http://g.gravizo.com/g?
-  digraph G {
-    rankdir=LR;
-    ClientAPI [shape=box, label="Send\(const Protobuf_1 &msg\n...\nSend\(const Protobuf_n-1 &msg\nRecv\(const Protobuf_n &msg\n...\nRecv\(const Protobuf_m &msg"];
-    ClientAPI -> client;
-    client -> ClientAPI;
-    client -> server [label="protobuf messages"];
-    server -> client;
-    ServerAPI [shape=box, label="Send\(const Protobuf_n &msg\n...\nSend\(const Protobuf_m &msg\nRecv\(const Protobuf_1 &msg\n...\nRecv\(const Protobuf_n-1 &msg"];
-    ServerAPI -> server;
-    server -> ServerAPI;
-  }
-)
-
-    Figure 1: Diagram of a GEP protocol-based client/server.
-
+<div align="center">
+  <img src="images/protocol_diagram.svg" alt="protocol_diagram">
+  <br>
+  Figure 1: Diagram of a GEP protocol-based client/server.
+  <br>
+</div>
 
 GEP-based protocols are asynchronous by definition: The sender sends
 a protobuf message to the receiver, and it does not wait for an answer
@@ -178,7 +168,7 @@ Both client and server must be initialized with a virtual function table
 that must be called on receiving one.
 
 
-    $ cat example/sgp_client.cc
+    $ cat example/sgp_client.h
     ...
     class SGPClient: public GepClient {
      public:
@@ -201,7 +191,33 @@ that must be called on receiving one.
     Figure 4: Implementation of SGPClient.
 
 
-The SGPServer implementation is very similar to that of SGPClient.
+The SGPServer implementation is very similar to that of SGPClient. The
+main difference is that the Recv() callbacks can have an extra parameter
+(``id''), identifying the client that sent the message.
+
+
+    $ cat example/sgp_server.h
+    ...
+    class SGPServer: public GepServer {
+     public:
+      SGPServer();
+      ...
+
+      // protocol object callbacks: These are object (non-static) callback
+      // methods, which is handy for the callers.
+      virtual bool Recv(const Command1 &msg, int id) = 0;
+      virtual bool Recv(const Command2 &msg, int id) = 0;
+      ...
+    };
+
+    const GepVFT kSGPServerOps = {
+      {SGPProtocol::MSG_TAG_COMMAND_1, &RecvMessageId<SGPServer, Command1>},
+      {SGPProtocol::MSG_TAG_COMMAND_2, &RecvMessageId<SGPServer, Command2>},
+      ...
+    };
+
+    Figure 5: Implementation of SGPServer.
+
 
 
 GEP Implementation Details
@@ -250,7 +266,7 @@ a very simple wire format:
        |                              ...                              |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    Figure 5: A GEP protocol packet in the wire.
+    Figure 6: A GEP protocol packet in the wire.
 
 Where:
 

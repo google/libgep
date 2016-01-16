@@ -13,13 +13,15 @@
 #include "gep_channel.h"  // for GepChannel
 #include "gep_protocol.h"  // for GepProtocol (ptr only), etc
 
+class GepServer;
 
 // Class used to manage an array of communication channels where protobuf
 // messages can be sent back and forth.
 class GepChannelArray {
  public:
-  GepChannelArray(const std::string &name, GepProtocol *proto,
-                  int max_channels, const GepVFT *ops, void *context);
+  GepChannelArray(const std::string &name, GepServer *server,
+                  GepProtocol *proto, int max_channels,
+                  const GepVFT *ops, void *context);
   int OpenServerSocket();
   int AcceptConnection();
   int Stop();
@@ -60,6 +62,7 @@ class GepChannelArray {
   int AddChannel(int socket);
 
   std::string name_;
+  GepServer *server_;  // not owned
   GepProtocol *proto_;  // not owned
   const GepVFT *ops_;  // VFT for the receiving side (not owned)
   void *context_;  // link to context (not owned)

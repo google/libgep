@@ -21,14 +21,16 @@
 #include <unistd.h>  // for close
 
 #include "gep_channel.h"  // for GepChannel
+#include "gep_server.h"  // for GepChannel
 #include "utils.h"  // for set_socket_no_delay, etc
 
 using namespace libgep_utils;
 
-GepChannelArray::GepChannelArray(const std::string &name, GepProtocol *proto,
-                                 int max_channels, const GepVFT *ops,
-                                 void *context)
+GepChannelArray::GepChannelArray(const std::string &name, GepServer *server,
+                                 GepProtocol *proto, int max_channels,
+                                 const GepVFT *ops, void *context)
     : name_(name),
+     server_(server),
      proto_(proto),
      ops_(ops),
      context_(context),
@@ -107,6 +109,9 @@ int GepChannelArray::Stop() {
   }
 
   // Delete all GepChannel's
+  for (auto &gep_channel_ptr : gep_channel_vector_) {
+    server_->DelClient(gep_channel_ptr->GetId());
+  }
   gep_channel_vector_.clear();
 
   return 0;
@@ -125,6 +130,7 @@ int GepChannelArray::AddChannel(int socket) {
   gep_log(LOG_DEBUG,
           "%s(%d):add GEP channel using socket %d",
           name_.c_str(), id, socket);
+  server_->AddClient(id);
   return 0;
 }
 
@@ -228,6 +234,7 @@ void GepChannelArray::RecvData(fd_set *read_fds) {
          it != gep_channel_vector_.end(); ) {
       std::shared_ptr<GepChannel> gep_channel_ptr = *it;
       if (used_gep_channel_ptr == gep_channel_ptr) {
+        server_->DelClient((*it)->GetId());
         it = gep_channel_vector_.erase(it);
         break;
       }

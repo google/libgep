@@ -31,10 +31,10 @@ class MyServer: public SGPServer {
   virtual ~MyServer() {};
 
   // protocol callbacks
-  bool Recv(const Command1 &msg) override;
-  bool Recv(const Command2 &msg) override;
-  bool Recv(const Command3 &msg) override;
-  bool Recv(const Command4 &msg) override;
+  bool Recv(const Command1 &msg, int id) override;
+  bool Recv(const Command2 &msg, int id) override;
+  bool Recv(const Command3 &msg, int id) override;
+  bool Recv(const Command4 &msg, int id) override;
 
   int cnt1_;
   int cnt2_;
@@ -44,25 +44,25 @@ class MyServer: public SGPServer {
   bool seen_client_;
 };
 
-bool MyServer::Recv(const Command1 &msg) {
+bool MyServer::Recv(const Command1 &msg, int id) {
   cnt1_++;
   seen_client_ = true;
   return true;
 }
 
-bool MyServer::Recv(const Command2 &msg) {
+bool MyServer::Recv(const Command2 &msg, int id) {
   cnt2_++;
   seen_client_ = true;
   return true;
 }
 
-bool MyServer::Recv(const Command3 &msg) {
+bool MyServer::Recv(const Command3 &msg, int id) {
   cnt3_++;
   seen_client_ = true;
   return true;
 }
 
-bool MyServer::Recv(const Command4 &msg) {
+bool MyServer::Recv(const Command4 &msg, int id) {
   cnt4_++;
   seen_client_ = true;
   return true;
