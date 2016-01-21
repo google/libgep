@@ -580,3 +580,22 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+TEST_F(GepTest, EndToEndBinaryProtocol) {
+  // use binary mode
+  cproto_->SetMode(GepProtocol::MODE_BINARY);
+  sproto_->SetMode(GepProtocol::MODE_BINARY);
+
+  // push message in the client
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SendMessage(kOriginalCommand1);
+
+  // push message in the server
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
+
+  // ensure we did not reconnect
+  usleep(1000);
+  EXPECT_EQ(0, client_->GetReconnectCount());
+  WaitForSync(2);
+}

@@ -21,6 +21,7 @@ const int64_t kDefaultSelectTimeUsec = secs_to_usecs(1);
 
 GepProtocol::GepProtocol(int port)
     : port_(port),
+      mode_(kMode),
       magic_(kMagic),
       select_timeout_usec_(kDefaultSelectTimeUsec) {
 }
@@ -57,10 +58,18 @@ void GepProtocol::PrintHeader(uint32_t tag, uint32_t value_len, uint8_t *buf) {
 
 bool GepProtocol::Serialize(const ::google::protobuf::Message &msg,
                             std::string *s) {
-  return (google::protobuf::TextFormat::PrintToString(msg, s));
+  if (mode_ == MODE_TEXT) {
+    return (google::protobuf::TextFormat::PrintToString(msg, s));
+  } else {  // mode_ == MODE_BINARY
+    return msg.SerializeToString(s);
+  }
 }
 
 bool GepProtocol::Unserialize(const std::string &s,
                               ::google::protobuf::Message *msg) {
-  return (google::protobuf::TextFormat::ParseFromString(s, msg));
+  if (mode_ == MODE_TEXT) {
+    return (google::protobuf::TextFormat::ParseFromString(s, msg));
+  } else {  // mode_ == MODE_BINARY
+    return msg->ParseFromString(s);
+  }
 }

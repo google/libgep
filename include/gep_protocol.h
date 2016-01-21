@@ -49,10 +49,15 @@ class GepProtocol {
   int TagString(uint32_t tag, char *buf, int max_buf);
 
   // serializer code
-  // TODO(chema): provide a flag to support binary-protobuf GEP
   // Return an error code (true if ok, false if problems)
   bool Serialize(const ::google::protobuf::Message &msg, std::string *s);
   bool Unserialize(const std::string &s, ::google::protobuf::Message *msg);
+  enum Mode {
+    MODE_TEXT = 0,  // use text-encoded protobuf messages
+    MODE_BINARY = 1,  // use binary-encoded protobuf messages
+  };
+  void SetMode(Mode mode) { mode_ = mode; }
+  Mode GetMode() const { return mode_; }
 
   // accessors
   int GetPort() const { return port_; }
@@ -70,6 +75,8 @@ class GepProtocol {
 
  protected:
   int port_;
+  Mode mode_;
+  static constexpr Mode kMode = MODE_TEXT;
 
   // GEP protocol header
   static const uint32_t kOffsetMagic = 0;
