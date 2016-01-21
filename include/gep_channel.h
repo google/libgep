@@ -49,7 +49,7 @@ class GepChannel {
  protected:
   // return values used by GepChannel::RecvData()
   enum Result {
-    CMD_ERROR      = -1,  // unsupported command or invalid ec pointer
+    CMD_ERROR      = -1,  // unsupported command or invalid channel pointer
     CMD_OK         =  0,  // successfully processed one or more commands
     CMD_FRAGMENTED =  1,  // command is fragmented, needs more data
     CMD_DROPPED    =  2   // unsupported command, data dropped

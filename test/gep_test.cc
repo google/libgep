@@ -169,8 +169,8 @@ bool GepTest::Recv(const ControlMessage &msg, int id) {
   // check the msg received in the server
   if (ProtobufEqual(kControlMessagePing, msg)) {
     // send pong message
-    GepChannelArray *eca = server_->GetGepChannelArray();
-    eca->SendMessage(kControlMessagePong);
+    GepChannelArray *gca = server_->GetGepChannelArray();
+    gca->SendMessage(kControlMessagePong);
   } else if (ProtobufEqual(kControlMessageGetLock, msg)) {
     // let the main thread know the server thread is in the callback
     stage1_ = true;
@@ -290,12 +290,12 @@ TEST_F(GepTest, Unserialize) {
 
 TEST_F(GepTest, EndToEnd) {
   // push message in the client
-  GepChannel *ec = client_->GetGepChannel();
-  ec->SendMessage(kOriginalCommand1);
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SendMessage(kOriginalCommand1);
 
   // push message in the server
-  GepChannelArray *eca = server_->GetGepChannelArray();
-  eca->SendMessage(kOriginalCommand3);
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
 
   WaitForSync(2);
 }
@@ -306,14 +306,14 @@ void GepTest::SenderPusherThread() {
     std::this_thread::yield();
 
   // push message in the server
-  GepChannelArray *eca = server_->GetGepChannelArray();
-  eca->SendMessage(kOriginalCommand3);
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
 }
 
 TEST_F(GepTest, ParallelEndToEnd) {
   // push message in the client
-  GepChannel *ec = client_->GetGepChannel();
-  ec->SendMessage(kOriginalCommand1);
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SendMessage(kOriginalCommand1);
 
   // start the sender pusher threads
   ready_ = false;
@@ -331,29 +331,29 @@ TEST_F(GepTest, ParallelEndToEnd) {
 }
 
 TEST_F(GepTest, ClientReconnect) {
-  GepChannel *ec = client_->GetGepChannel();
+  GepChannel *gc = client_->GetGepChannel();
   // initially we are connected
-  EXPECT_NE(-1, ec->GetSocket());
+  EXPECT_NE(-1, gc->GetSocket());
   // stop the server
   server_->Stop();
   // check that the client channel becomes disconnected
   int64_t max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (ec->GetSocket() != -1 && GetUnixTimeUsec() < max_time)
+  while (gc->GetSocket() != -1 && GetUnixTimeUsec() < max_time)
     usleep(1000);
-  EXPECT_EQ(-1, ec->GetSocket());
+  EXPECT_EQ(-1, gc->GetSocket());
   // restart the server
   server_->Start();
   // check that the client reconnected
   max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (ec->GetSocket() == -1 && GetUnixTimeUsec() < max_time)
+  while (gc->GetSocket() == -1 && GetUnixTimeUsec() < max_time)
     usleep(1000);
-  EXPECT_NE(-1, ec->GetSocket());
+  EXPECT_NE(-1, gc->GetSocket());
 }
 
 TEST_F(GepTest, ClientReconnectOnGarbageData) {
-  GepChannel *ec = client_->GetGepChannel();
+  GepChannel *gc = client_->GetGepChannel();
   // initially we are connected
-  EXPECT_NE(-1, ec->GetSocket());
+  EXPECT_NE(-1, gc->GetSocket());
   EXPECT_EQ(0, client_->GetReconnectCount());
   // get server socket so we can send the invalid data
   int server_socket = server_->GetGepChannelArray()->GetVectorSocket(0);
@@ -366,13 +366,13 @@ TEST_F(GepTest, ClientReconnectOnGarbageData) {
     usleep(1000);
   // ensure we did not timeout
   EXPECT_LE(1, client_->GetReconnectCount());
-  EXPECT_NE(-1, ec->GetSocket());
+  EXPECT_NE(-1, gc->GetSocket());
 }
 
 TEST_F(GepTest, ClientReconnectOnHugeMessageData) {
-  GepChannel *ec = client_->GetGepChannel();
+  GepChannel *gc = client_->GetGepChannel();
   // initially we are connected
-  EXPECT_NE(-1, ec->GetSocket());
+  EXPECT_NE(-1, gc->GetSocket());
   EXPECT_EQ(0, client_->GetReconnectCount());
   // get server socket so we can send the invalid data
   int server_socket = server_->GetGepChannelArray()->GetVectorSocket(0);
@@ -385,23 +385,23 @@ TEST_F(GepTest, ClientReconnectOnHugeMessageData) {
     usleep(1000);
   // ensure we did not timeout
   EXPECT_LE(1, client_->GetReconnectCount());
-  EXPECT_NE(-1, ec->GetSocket());
+  EXPECT_NE(-1, gc->GetSocket());
   // ensure the server is seeing the client
   max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
   while (server_->GetNumClients() == 0 && GetUnixTimeUsec() < max_time)
     usleep(1000);
   EXPECT_EQ(1, server_->GetNumClients());
   // push message in the server
-  GepChannelArray *eca = server_->GetGepChannelArray();
-  eca->SendMessage(kOriginalCommand3);
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
 
   WaitForSync(1);
 }
 
 TEST_F(GepTest, ClientRestart) {
-  GepChannel *ec = client_->GetGepChannel();
+  GepChannel *gc = client_->GetGepChannel();
   // initially we are connected
-  ASSERT_NE(-1, ec->GetSocket());
+  ASSERT_NE(-1, gc->GetSocket());
   for (int i = 0; i < 20; ++i) {
     // stop the client
     client_->Stop();
@@ -417,27 +417,27 @@ TEST_F(GepTest, ClientRestart) {
     ASSERT_NE(0, server_->GetNumClients());
     // check that the client reconnected
     max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-    while (ec->GetSocket() == -1 && GetUnixTimeUsec() < max_time)
+    while (gc->GetSocket() == -1 && GetUnixTimeUsec() < max_time)
       usleep(1000);
-    ASSERT_NE(-1, ec->GetSocket());
+    ASSERT_NE(-1, gc->GetSocket());
   }
 }
 
 TEST_F(GepTest, DropUnsupportedMessage) {
-  GepChannel *ec = client_->GetGepChannel();
+  GepChannel *gc = client_->GetGepChannel();
   // initially we are connected
-  EXPECT_NE(-1, ec->GetSocket());
+  EXPECT_NE(-1, gc->GetSocket());
   EXPECT_EQ(0, client_->GetReconnectCount());
   // get server socket so we can send the unknown message
   int server_socket = server_->GetGepChannelArray()->GetVectorSocket(0);
   // send an unknown message
   int size_msg = sizeof(kUnsupportedMessage) - 1;  // do not send the '\0'
   EXPECT_EQ(size_msg, write(server_socket, kUnsupportedMessage, size_msg));
-  // push message in the client
-  ec->SendMessage(kOriginalCommand1);
-  // push message in the server
-  GepChannelArray *eca = server_->GetGepChannelArray();
-  eca->SendMessage(kOriginalCommand3);
+  // push a message in the client
+  gc->SendMessage(kOriginalCommand1);
+  // push another message in the server
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
   // ensure we did not reconnect
   EXPECT_EQ(0, client_->GetReconnectCount());
   WaitForSync(2);
@@ -445,22 +445,22 @@ TEST_F(GepTest, DropUnsupportedMessage) {
 
 TEST_F(GepTest, MultipleMessagesAreAllReceived) {
   // push 2x messages in the client
-  GepChannel *ec = client_->GetGepChannel();
-  ec->SendMessage(kOriginalCommand1);
-  ec->SendMessage(kOriginalCommand1);
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SendMessage(kOriginalCommand1);
+  gc->SendMessage(kOriginalCommand1);
 
   // push message in the server
-  GepChannelArray *eca = server_->GetGepChannelArray();
-  eca->SendMessage(kOriginalCommand3);
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
 
   // note that WaitForSync() will wait for 3 messages or fail
   WaitForSync(3);
 }
 
 TEST_F(GepTest, Fragmentation) {
-  GepChannel *ec = client_->GetGepChannel();
+  GepChannel *gc = client_->GetGepChannel();
   // initially we are connected
-  EXPECT_NE(-1, ec->GetSocket());
+  EXPECT_NE(-1, gc->GetSocket());
   EXPECT_EQ(0, client_->GetReconnectCount());
   // get server socket so we can send the unknown message
   int server_socket = server_->GetGepChannelArray()->GetVectorSocket(0);
@@ -481,20 +481,20 @@ TEST_F(GepTest, Fragmentation) {
   EXPECT_EQ(bi, write(server_socket, kSeveralMessages, bi));
 
   // push another message in the client
-  ec->SendMessage(kOriginalCommand1);
-  ec->SendMessage(kOriginalCommand1);
+  gc->SendMessage(kOriginalCommand1);
+  gc->SendMessage(kOriginalCommand1);
 
   // push message in the server
-  GepChannelArray *eca = server_->GetGepChannelArray();
-  eca->SendMessage(kOriginalCommand3);
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
 
   WaitForSync(total + 2);
 }
 
 TEST_F(GepTest, CallbackDeadlock) {
   // push message in the client
-  GepChannel *ec = client_->GetGepChannel();
-  ec->SendMessage(kControlMessagePing);
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SendMessage(kControlMessagePing);
 
   WaitForSync(2);
 }
@@ -511,8 +511,8 @@ void GepTest::SenderLockThread() {
   stage2_ = true;
 
   // push any message in the server
-  GepChannelArray *eca = server_->GetGepChannelArray();
-  eca->SendMessage(kOriginalCommand3);
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
 }
 
 TEST_F(GepTest, CallbackCrossed) {
@@ -521,8 +521,8 @@ TEST_F(GepTest, CallbackCrossed) {
   stage2_ = false;
 
   // push message in the client
-  GepChannel *ec = client_->GetGepChannel();
-  ec->SendMessage(kControlMessageGetLock);
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SendMessage(kControlMessageGetLock);
 
   // start the sender thread
   auto th = std::thread(&GepTest::SenderLockThread, this);
