@@ -3,12 +3,16 @@
 #ifndef _SGP_CLIENT_H_
 #define _SGP_CLIENT_H_
 
-#include <gep_protocol.h>  // for GepVFT
 #include <gep_client.h>  // for GepClient
+#include <gep_protocol.h>  // for GepVFT
 #include <gep_utils.h>  // for RecvMessage
 
 #include "sgp_protocol.h"  // for SGPProtocol, etc
+#ifndef GEP_LITE
 #include "sgp.pb.h"  // for Command1, etc
+#else
+#include "sgp_lite.pb.h"  // for Command1, etc
+#endif
 
 // Class implementing a SGPClient: This is basically a GEP client
 // that hardcodes the use of a SGPProtocol.

@@ -12,9 +12,13 @@
 #include "test_protocol.h"
 
 #include <cstddef>  // for NULL
-#include <google/protobuf/message.h>  // for Message
 
-#include "test.pb.h"  // for Command1, etc
+#include "gep_common.h"  // for GepProtobufMessage, etc
+#ifndef GEP_LITE
+#include "test.pb.h"
+#else
+#include "test_lite.pb.h"
+#endif
 
 
 TestProtocol::TestProtocol(int port)
@@ -31,7 +35,7 @@ constexpr uint32_t TestProtocol::MSG_TAG_COMMAND_3;
 constexpr uint32_t TestProtocol::MSG_TAG_COMMAND_4;
 constexpr uint32_t TestProtocol::MSG_TAG_CONTROL;
 
-uint32_t TestProtocol::GetTag(const ::google::protobuf::Message *msg) {
+uint32_t TestProtocol::GetTag(const GepProtobufMessage *msg) {
   // TODO(chema): use send VFT map here instead of listing all the cases (?)
   if (dynamic_cast<const Command1 *>(msg) != NULL)
     return MSG_TAG_COMMAND_1;
@@ -46,8 +50,8 @@ uint32_t TestProtocol::GetTag(const ::google::protobuf::Message *msg) {
   return 0;
 }
 
-::google::protobuf::Message *TestProtocol::GetMessage(uint32_t tag) {
-  ::google::protobuf::Message *msg = NULL;
+GepProtobufMessage *TestProtocol::GetMessage(uint32_t tag) {
+  GepProtobufMessage *msg = NULL;
   switch (tag) {
     case MSG_TAG_COMMAND_1:
       msg = new Command1();

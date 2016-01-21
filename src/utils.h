@@ -3,7 +3,8 @@
 
 #include <stdint.h>  // for int64_t, uint8_t, uint16_t, etc
 #include <sys/time.h>  // for timeval
-#include <google/protobuf/message.h>
+
+#include "gep_common.h"  // for GepProtobufMessage
 
 namespace libgep_utils {
 
@@ -64,8 +65,8 @@ void gep_perror(int err, const char* cstr, ...)
   __attribute__((format(printf, 2, 3)));
 
 
-bool ProtobufEqual(const ::google::protobuf::Message &msg1,
-                   const ::google::protobuf::Message &msg2);
+bool ProtobufEqual(const GepProtobufMessage &msg1,
+                   const GepProtobufMessage &msg2);
 
 const int64_t kMsecsPerSec = 1000LL;
 const int64_t kUsecsPerSec = 1000000LL;

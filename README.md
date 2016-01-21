@@ -122,14 +122,14 @@ GetMessage() maps a tag to a protobuf message.
           MakeTag('c', 'm', 'd', '2');
       ...
       // returns the tag associated to a message.
-      virtual uint32_t GetTag(const ::google::protobuf::Message *msg);
+      virtual uint32_t GetTag(const GepProtobufMessage *msg);
       // constructs an object of a given type.
-      virtual ::google::protobuf::Message *GetMessage(uint32_t tag);
+      virtual GepProtobufMessage *GetMessage(uint32_t tag);
     };
     ...
 
     $ cat example/sgp_protocol.cc
-    uint32_t SGPProtocol::GetTag(const ::google::protobuf::Message *msg) {
+    uint32_t SGPProtocol::GetTag(const GepProtobufMessage *msg) {
       if (dynamic_cast<const Command1Message *>(msg) != NULL)
         return MSG_TAG_COMMAND_1;
       else if (dynamic_cast<const Command2Message *>(msg) != NULL)
@@ -137,8 +137,8 @@ GetMessage() maps a tag to a protobuf message.
       ...
     }
 
-    ::google::protobuf::Message *SGPProtocol::GetMessage(uint32_t tag) {
-      ::google::protobuf::Message *msg = NULL;
+    GepProtobufMessage *SGPProtocol::GetMessage(uint32_t tag) {
+      GepProtobufMessage *msg = NULL;
       switch (tag) {
         case MSG_TAG_COMMAND_1:
           msg = new Command1Message();
@@ -279,6 +279,21 @@ Where:
   - message: a serialized protobuf message [value\_len bytes]. We are
     currently using a text protobuf. This allows easy debugging of wire
     packets.
+
+
+Protobuf-Lite Support
+---------------------
+
+GEP also provides a protobuf-lite version. Protobuf-lite is a light
+version of protobuf (the libraries are 1/10th the size of vanilla
+protobuf) in exchange of support for neither descriptors nor reflection.
+
+In order to use the lite version of GEP, you need to:
+
+1. ensure you define the GEP lite flag before you include any of the
+   GEP header files (GEP_LITE).
+2. link with the lite version of the libraries (libgepclient-lite.a and
+   libgepserver-lite.a)
 
 
 Future Work

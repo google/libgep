@@ -12,7 +12,6 @@
 #include <ctype.h>                      // for isprint
 #include <errno.h>                      // for errno, EAGAIN, EWOULDBLOCK
 #include <fcntl.h>                      // for fcntl
-#include <google/protobuf/message.h>    // for Message
 #include <netinet/in.h>                 // for sockaddr_in, IPPROTO_TCP, etc
 #include <netinet/tcp.h>                // for TCP_NODELAY
 #include <stdarg.h>                     // for va_list
@@ -24,6 +23,7 @@
 #include <time.h>                       // for NULL, strftime, tm, etc
 #include <string>                       // for string, operator==, etc
 
+#include "gep_common.h"  // for GepProtobufMessage
 
 namespace libgep_utils {
 
@@ -75,9 +75,13 @@ void gep_perror(int err, const char* cstr, ...) {
   fflush(stdout);
 }
 
-bool ProtobufEqual(const ::google::protobuf::Message &msg1,
-                   const ::google::protobuf::Message &msg2) {
-  return msg1.DebugString() == msg2.DebugString();
+bool ProtobufEqual(const GepProtobufMessage &msg1,
+                   const GepProtobufMessage &msg2) {
+  std::string str_msg1;
+  std::string str_msg2;
+  msg1.SerializeToString(&str_msg1);
+  msg2.SerializeToString(&str_msg2);
+  return str_msg1 == str_msg2;
 }
 
 int64_t GetUnixTimeUsec() {

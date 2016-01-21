@@ -4,11 +4,11 @@
 #define _GEP_CLIENT_H_
 
 #include <atomic>  // for atomic
-#include <google/protobuf/message.h>  // for Message
 #include <string>  // for string
 #include <thread>  // for thread
 
 #include "gep_channel.h"  // for GepChannel
+#include "gep_common.h"  // for GepProtobufMessage
 #include "gep_protocol.h"  // for GepProtocol
 
 
@@ -41,7 +41,7 @@ class GepClient {
 
   // send API
   // Returns status value (0 if all ok, -1 for any error)
-  virtual int Send(const ::google::protobuf::Message &msg);
+  virtual int Send(const GepProtobufMessage &msg);
 
   // Returns how many times the client reconnected to the server socket.
   int GetReconnectCount() { return reconnect_count_; }

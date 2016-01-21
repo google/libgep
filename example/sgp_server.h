@@ -8,7 +8,11 @@
 #include <gep_utils.h>  // for RecvMessage
 
 #include "sgp_protocol.h"  // for SGPProtocol, etc
+#ifndef GEP_LITE
 #include "sgp.pb.h"  // for Command1, etc
+#else
+#include "sgp_lite.pb.h"  // for Command1, etc
+#endif
 
 // Class implementing a SGPServer: This is basically a GEP server
 // that hardcodes the use of a SGPProtocol. It is used as the

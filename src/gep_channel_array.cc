@@ -14,13 +14,13 @@
 #include <algorithm>  // for max
 #include <errno.h>  // for errno
 #include <ext/alloc_traits.h>
-#include <google/protobuf/text_format.h>  // for TextFormat
 #include <netinet/in.h>  // for sockaddr_in, htons, etc
 #include <string.h>  // for memset
 #include <sys/socket.h>  // for AF_INET, accept, bind, etc
 #include <unistd.h>  // for close
 
 #include "gep_channel.h"  // for GepChannel
+#include "gep_common.h"  // for GepProtobufMessage
 #include "gep_server.h"  // for GepChannel
 #include "utils.h"  // for set_socket_no_delay, etc
 
@@ -156,7 +156,7 @@ int GepChannelArray::AcceptConnection() {
 }
 
 // Returns -1 if any of the channels fails, 0 otherwise
-int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg) {
+int GepChannelArray::SendMessage(const GepProtobufMessage &msg) {
   std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   // send the message to all open GepChannel's
   int ret = 0;
@@ -169,8 +169,7 @@ int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg) {
 }
 
 // Returns -1 if the message couldn't be sent, 0 otherwise
-int GepChannelArray::SendMessage(const ::google::protobuf::Message &msg,
-                                 int id) {
+int GepChannelArray::SendMessage(const GepProtobufMessage &msg, int id) {
   std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   // send the message to a specific GepChannel's
   for (auto &gep_channel_ptr : gep_channel_vector_) {

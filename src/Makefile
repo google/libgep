@@ -1,5 +1,5 @@
 TOP:=..
-TARGETS=libgepserver.a libgepclient.a
+TARGETS=libgepserver.a libgepclient.a libgepserver-lite.a libgepclient-lite.a
 include ../rules.mk
 
 CPPFLAGS+=-I. -I.. -I../include
@@ -23,11 +23,51 @@ libgepclient.a: \
     gep_client.o
 	$(make_lib)
 
+utils_lite.o: utils.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ utils.cc
+
+gep_protocol_lite.o: gep_protocol.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_protocol.cc
+
+gep_channel_lite.o: gep_channel.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_channel.cc
+
+gep_channel_array_lite.o: gep_channel_array.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_channel_array.cc
+
+gep_server_lite.o: gep_server.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_server.cc
+
+gep_client_lite.o: gep_client.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_client.cc
+
+libgepserver-lite.a: CPPFLAGS+=-DGEP_LITE
+
+libgepserver-lite.a: \
+    utils_lite.o \
+    gep_protocol_lite.o \
+    gep_channel_lite.o \
+    gep_channel_array_lite.o \
+    gep_server_lite.o
+	$(make_lib)
+
+libgepclient-lite.a: CPPFLAGS+=-DGEP_LITE
+
+libgepclient-lite.a: \
+    utils_lite.o \
+    gep_protocol_lite.o \
+    gep_channel_lite.o \
+    gep_channel_array_lite.o \
+    gep_client_lite.o
+	$(make_lib)
+
 install:
 	$(INSTALL) -D -m 0755 \
 		libgepserver.a \
 		libgepclient.a \
+		libgepserver-lite.a \
+		libgepclient-lite.a \
 		$(DESTDIR)/usr/lib/
 
 clean::
-	rm -f *.o libgepserver.a libgepclient.a
+	rm -f *.o libgepserver.a libgepclient.a libgepserver-lite.a libgepclient-lite.a

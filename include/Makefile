@@ -5,6 +5,7 @@ all: $(TARGETS)
 
 install:
 	$(INSTALL) -D -m 0444 \
+		gep_common.h \
 		gep_server.h \
 		gep_protocol.h \
 		gep_client.h \

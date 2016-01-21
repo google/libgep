@@ -13,6 +13,7 @@
 #include <google/protobuf/text_format.h>  // for TextFormat
 #include <netinet/in.h>  // for htonl
 
+#include "gep_common.h"  // for GepProtobufMessage
 #include "utils.h"  // for SET_UINT32, UINT32, snprintf_printable
 
 using namespace libgep_utils;
@@ -56,20 +57,29 @@ void GepProtocol::PrintHeader(uint32_t tag, uint32_t value_len, uint8_t *buf) {
   SET_UINT32(buf + kOffsetLen, value_len);
 }
 
-bool GepProtocol::Serialize(const ::google::protobuf::Message &msg,
-                            std::string *s) {
+bool GepProtocol::Serialize(const GepProtobufMessage &msg, std::string *s) {
+#ifndef GEP_LITE
   if (mode_ == MODE_TEXT) {
     return (google::protobuf::TextFormat::PrintToString(msg, s));
   } else {  // mode_ == MODE_BINARY
+#endif
     return msg.SerializeToString(s);
+#ifndef GEP_LITE
   }
+#endif
 }
 
-bool GepProtocol::Unserialize(const std::string &s,
-                              ::google::protobuf::Message *msg) {
+bool GepProtocol::Unserialize(const std::string &s, GepProtobufMessage *msg) {
+#ifndef GEP_LITE
   if (mode_ == MODE_TEXT) {
     return (google::protobuf::TextFormat::ParseFromString(s, msg));
   } else {  // mode_ == MODE_BINARY
-    return msg->ParseFromString(s);
+#endif
+    msg->Clear();
+    if (!s.empty())
+      return msg->ParseFromString(s);
+    return true;
+#ifndef GEP_LITE
   }
+#endif
 }

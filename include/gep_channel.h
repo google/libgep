@@ -6,8 +6,8 @@
 #include <mutex>
 #include <stdint.h>  // for uint32_t, uint8_t
 #include <string>  // for string
-#include <google/protobuf/message.h>  // for Message
 
+#include "gep_common.h"  // for GepProtobufMessage
 #include "gep_protocol.h"  // for GepProtocol (ptr only), etc
 
 
@@ -29,7 +29,7 @@ class GepChannel {
 
   // Send a specific protobuf message to a GEP client.
   // Returns status value (0 if ok, -1 for error)
-  virtual int SendMessage(const ::google::protobuf::Message &msg);
+  virtual int SendMessage(const GepProtobufMessage &msg);
 
   // socket opening/closing
   int OpenClientSocket(int port = -1);

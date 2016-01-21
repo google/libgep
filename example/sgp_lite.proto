@@ -1,0 +1,28 @@
+// A protocol buffer representation of an example API.
+
+syntax = "proto2";
+
+option optimize_for = LITE_RUNTIME;
+
+message Command1 {
+  optional int64 a = 1;
+  optional int32 b = 2;
+}
+
+message Command2 {
+  optional int64 id = 1;
+}
+
+message Command3 {
+  optional int64 id = 1;
+}
+
+message Command4 {
+  optional int64 id = 1;
+  enum Command {
+    COMMAND_40 = 0;
+    COMMAND_41 = 1;
+    COMMAND_42 = 2;
+  }
+  optional Command command = 2 [default = COMMAND_40];
+}

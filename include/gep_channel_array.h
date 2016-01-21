@@ -3,7 +3,6 @@
 #ifndef _GEP_CHANNEL_ARRAY_H_
 #define _GEP_CHANNEL_ARRAY_H_
 
-#include <google/protobuf/message.h>  // for Message
 #include <memory>  // for shared_ptr
 #include <mutex>  // for mutex
 #include <string>  // for string
@@ -11,6 +10,7 @@
 #include <vector>  // for vector
 
 #include "gep_channel.h"  // for GepChannel
+#include "gep_common.h"  // for GepProtobufMessage
 #include "gep_protocol.h"  // for GepProtocol (ptr only), etc
 
 class GepServer;
@@ -42,11 +42,11 @@ class GepChannelArray {
   // messages have been received and which not. We expect the protocols
   // implemented on top of GEP to not require idempotence in the
   // server-initiated operations.
-  int SendMessage(const ::google::protobuf::Message &msg);
+  int SendMessage(const GepProtobufMessage &msg);
 
   // Send a specific protobuf message to a specified GEP client.
   // Returns status value (0 if all ok, -1 if the receiver failed).
-  int SendMessage(const ::google::protobuf::Message &msg, int id);
+  int SendMessage(const GepProtobufMessage &msg, int id);
 
   void ClearGepChannelVector();
   // accessors

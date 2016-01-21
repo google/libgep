@@ -4,12 +4,12 @@
 #define _GEP_SERVER_H_
 
 #include <atomic>
-#include <google/protobuf/message.h>  // for Message
 #include <thread>  // for thread
 #include <string>  // for string
 #include <stddef.h>  // for NULL
 
 #include "gep_channel_array.h"
+#include "gep_common.h"  // for GepProtobufMessage
 #include "gep_protocol.h"
 
 
@@ -51,8 +51,8 @@ class GepServer {
 
   // send API
   // Returns status value (0 if all ok, -1 for any error)
-  virtual int Send(const ::google::protobuf::Message &msg);
-  virtual int Send(const ::google::protobuf::Message &msg, int id);
+  virtual int Send(const GepProtobufMessage &msg);
+  virtual int Send(const GepProtobufMessage &msg, int id);
 
   // client (dis)connection callbacks
   virtual void AddClient(int id) { }

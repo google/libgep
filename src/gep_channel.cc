@@ -12,7 +12,6 @@
 #include "gep_channel.h"
 
 #include <errno.h>  // for errno, ECONNRESET
-#include <google/protobuf/message.h>  // for Message
 #include <inttypes.h>
 #include <map>  // for _Rb_tree_const_iterator
 #include <mutex>
@@ -22,6 +21,7 @@
 #include <unistd.h>  // for close, usleep
 #include <utility>  // for pair
 
+#include "gep_common.h"  // for GepProtobufMessage
 #include "utils.h"  // for snprintf_printable, FullSend
 
 using namespace libgep_utils;
@@ -261,7 +261,7 @@ GepChannel::Result GepChannel::RecvTLV(uint32_t tag, int value_len,
   proto_->TagString(tag, tag_string, kMaxTagString);
   auto iter = ops_->find(tag);
   if (iter != ops_->end()) {
-    ::google::protobuf::Message *msg = proto_->GetMessage(tag);
+    GepProtobufMessage *msg = proto_->GetMessage(tag);
     gep_log(LOG_DEBUG,
             "%s:recv(%i):Received message with tag [%s] (%d value bytes)",
             name_.c_str(), id_, tag_string, value_len);
@@ -340,7 +340,7 @@ int GepChannel::SendTLV(uint32_t tag, int value_len, const char *value) {
   return 0;
 }
 
-int GepChannel::SendMessage(const ::google::protobuf::Message &msg) {
+int GepChannel::SendMessage(const GepProtobufMessage &msg) {
   // serialize the message
   std::string s;
   if (!proto_->Serialize(msg, &s)) {

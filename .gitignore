@@ -15,7 +15,11 @@ coverage_html/*.css
 *.so
 .stamp_*
 *_test
+test/gep_test
+test/gep_test_lite
 example/client
 example/server
+example/client_lite
+example/server_lite
 test_logs/*.log
 tsan_logs/*.log

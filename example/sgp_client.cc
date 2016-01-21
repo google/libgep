@@ -14,7 +14,11 @@
 #include <gep_client.h>  // for GepClient
 
 #include "sgp_protocol.h"  // for SGPProtocol, etc
+#ifndef GEP_LITE
 #include "sgp.pb.h"  // for Command1, etc
+#else
+#include "sgp_lite.pb.h"  // for Command1, etc
+#endif
 
 SGPClient::SGPClient()
   : GepClient("sgp_client",

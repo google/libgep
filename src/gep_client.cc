@@ -12,7 +12,6 @@
 #include "gep_client.h"
 
 #include <errno.h>  // for errno, EINTR
-#include <google/protobuf/message.h>  // for Message
 #include <stdint.h>  // for int64_t, uint32_t
 #include <stdio.h>  // for NULL
 #include <sys/select.h>  // for FD_ISSET, FD_SET, select, etc
@@ -22,6 +21,7 @@
 #include <unistd.h>  // for syscall, pid_t
 
 #include "gep_channel.h"  // for GepChannel
+#include "gep_common.h"  // for GepProtobufMessage
 #include "gep_protocol.h"  // for GepProtocol, etc
 #include "utils.h"  // for LOG_ERROR, gep_log, etc
 
@@ -89,7 +89,7 @@ void GepClient::Reconnect() {
   }
 }
 
-int GepClient::Send(const ::google::protobuf::Message &msg) {
+int GepClient::Send(const GepProtobufMessage &msg) {
   return gep_channel_->SendMessage(msg);
 }
 

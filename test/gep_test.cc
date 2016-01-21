@@ -12,7 +12,11 @@
 #include <unistd.h>  // for usleep
 
 #include "../src/utils.h"
+#ifndef GEP_LITE
 #include "test.pb.h"
+#else
+#include "test_lite.pb.h"
+#endif
 #include "test_protocol.h"
 
 using namespace libgep_utils;
@@ -21,29 +25,7 @@ const int kMaxChannels = 8;
 
 const int kNumWriters = 20;
 
-const char kOriginalCommand1Str[] = R"EOF(a: 1111111111111111
-b: 17688477
-)EOF";
-
-const char kOriginalCommand3Str[] = R"EOF(id: 123456789
-)EOF";
-
-const char kOriginalCommand4Str[] = R"EOF(id: 123456789
-)EOF";
-const char kRawCommand4[] = "geppcmd4\000\000\000\015id: 123456789";
-
-const char kControlMessagePingStr[] = R"EOF(
-command: COMMAND_PING
-)EOF";
-
-const char kControlMessagePongStr[] = R"EOF(
-command: COMMAND_PONG
-)EOF";
-
-const char kControlMessageGetLockStr[] = R"EOF(
-command: COMMAND_GET_LOCK
-)EOF";
-
+const char kRawCommand4Header[] = "geppcmd4";
 const char kInvalidMessage[] = "geppcmd3\000\000\000\001x";
 const char kHugeInvalidMessage[] = "geppcmd3\377\377\377\377yy";
 const char kUnsupportedMessage[] = "geppxyza\000\000\000\001x";
@@ -55,6 +37,13 @@ static Command4 kOriginalCommand4;
 static ControlMessage kControlMessagePing;
 static ControlMessage kControlMessagePong;
 static ControlMessage kControlMessageGetLock;
+
+static std::string kOriginalCommand1Str;
+static std::string kOriginalCommand3Str;
+static std::string kOriginalCommand4Str;
+static std::string kControlMessagePingStr;
+static std::string kControlMessagePongStr;
+static std::string kControlMessageGetLockStr;
 
 class TestServer : public GepServer {
  public:
@@ -228,21 +217,23 @@ void GepTest::SetUp() {
   // reset sync flag
   synced_ = 0;
 
-  // create a Command1 message
-  EXPECT_TRUE(cproto_->Unserialize(kOriginalCommand1Str, &kOriginalCommand1));
-  // create a Command3 message
-  EXPECT_TRUE(cproto_->Unserialize(kOriginalCommand3Str, &kOriginalCommand3));
+  // create some messages
+  kOriginalCommand1.set_a(0xaaaaaaaaaaaaaaaa);
+  kOriginalCommand1.set_b(0xbbbbbbbb);
+  kOriginalCommand3.set_id(123456789);
+  kOriginalCommand4.set_id(123456789);
+  kControlMessagePing.set_command(ControlMessage::COMMAND_PING);
+  kControlMessagePong.set_command(ControlMessage::COMMAND_PONG);
+  kControlMessageGetLock.set_command(ControlMessage::COMMAND_GET_LOCK);
 
-  // create a Command4 message
-  EXPECT_TRUE(cproto_->Unserialize(kOriginalCommand4Str, &kOriginalCommand4));
-
-  // create ControlMessage messages
-  EXPECT_TRUE(cproto_->Unserialize(kControlMessagePingStr,
-                                   &kControlMessagePing));
-  EXPECT_TRUE(cproto_->Unserialize(kControlMessagePongStr,
-                                   &kControlMessagePong));
-  EXPECT_TRUE(cproto_->Unserialize(kControlMessageGetLockStr,
-                                   &kControlMessageGetLock));
+  // create text versions
+  EXPECT_TRUE(cproto_->Serialize(kOriginalCommand1, &kOriginalCommand1Str));
+  EXPECT_TRUE(cproto_->Serialize(kOriginalCommand3, &kOriginalCommand3Str));
+  EXPECT_TRUE(cproto_->Serialize(kOriginalCommand4, &kOriginalCommand4Str));
+  EXPECT_TRUE(cproto_->Serialize(kControlMessagePing, &kControlMessagePingStr));
+  EXPECT_TRUE(cproto_->Serialize(kControlMessagePong, &kControlMessagePongStr));
+  EXPECT_TRUE(cproto_->Serialize(kControlMessageGetLock,
+                                 &kControlMessageGetLockStr));
 
   // start server
   server_->GetProto()->SetPort(0);
@@ -275,18 +266,50 @@ void GepTest::TearDown() {
 
 TEST_F(GepTest, Serialize) {
   // use the client GepChannel to test Serialize
-  std::string capture_str;
-  EXPECT_TRUE(cproto_->Serialize(kOriginalCommand1, &capture_str));
-  EXPECT_STREQ(kOriginalCommand1Str, capture_str.c_str());
+  static Command1 empty_command1;
+  struct gep_serialize_test {
+    int line;
+    Command1 *command1;
+    std::string expected_command1_str;
+  } test_arr[] = {
+    {__LINE__, &kOriginalCommand1, kOriginalCommand1Str},
+    {__LINE__, &empty_command1, ""},
+  };
+
+  for (const auto &test_item : test_arr) {
+    std::string capture_str;
+    EXPECT_TRUE(cproto_->Serialize(*test_item.command1, &capture_str)) <<
+        "Error on line " << test_item.line;
+    EXPECT_STREQ(test_item.expected_command1_str.c_str(),
+                 capture_str.c_str()) <<
+        "Error on line " << test_item.line;
+  }
 }
 
 TEST_F(GepTest, Unserialize) {
   // use the client GepChannel to test Unserialize
-  Command1 msg;
-  EXPECT_TRUE(cproto_->Unserialize(kOriginalCommand1Str, &msg));
-  EXPECT_TRUE(ProtobufEqual(kOriginalCommand1, msg));
-  // try an invalid message
-  EXPECT_FALSE(cproto_->Unserialize("invalid text protobuf", &msg));
+  static Command1 empty_command1;
+  struct gep_unserialize_test {
+    int line;
+    bool success;
+    Command1 *expected_command1;
+    std::string command1_str;
+  } test_arr[] = {
+    {__LINE__, true, &kOriginalCommand1, kOriginalCommand1Str},
+    {__LINE__, true, &empty_command1, ""},
+    // invalid message
+    {__LINE__, false, &empty_command1, "invalid text protobuf"},
+  };
+
+  for (const auto &test_item : test_arr) {
+    Command1 msg;
+    EXPECT_EQ(test_item.success,
+              cproto_->Unserialize(test_item.command1_str, &msg)) <<
+        "Error on line " << test_item.line;
+    if (test_item.success)
+      EXPECT_TRUE(ProtobufEqual(*test_item.expected_command1, msg)) <<
+          "Error on line " << test_item.line;
+  }
 }
 
 TEST_F(GepTest, EndToEnd) {
@@ -517,10 +540,15 @@ TEST_F(GepTest, Fragmentation) {
   bi += size_msg;
   // then add several supported messages
   int total = 10;
-  size_msg = sizeof(kRawCommand4) - 1;  // do not send the '\0'
+  int hdr_size_msg = sizeof(kRawCommand4Header) - 1;  // do not send '\0'
+  int body_size_msg = kOriginalCommand4Str.length();
   for (int i = 0; i < total; ++i) {
-    memcpy(kSeveralMessages + bi, kRawCommand4, size_msg);
-    bi += size_msg;
+    memcpy(kSeveralMessages + bi, kRawCommand4Header, hdr_size_msg);
+    bi += hdr_size_msg;
+    SET_UINT32(kSeveralMessages + bi, body_size_msg);
+    bi += 4;
+    memcpy(kSeveralMessages + bi, kOriginalCommand4Str.c_str(), body_size_msg);
+    bi += body_size_msg;
   }
   EXPECT_EQ(bi, write(server_socket, kSeveralMessages, bi));
 

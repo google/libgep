@@ -18,7 +18,9 @@ test/test example/all : src/all
 
 .protos_done: test/test.proto example/sgp.proto
 	$(MAKE) -C test test.pb.h
+	$(MAKE) -C test test_lite.pb.h
 	$(MAKE) -C example sgp.pb.h
+	$(MAKE) -C example sgp_lite.pb.h
 
 %/all:
 	$(MAKE) -C $* all

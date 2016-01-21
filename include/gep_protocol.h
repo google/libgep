@@ -4,18 +4,18 @@
 #define _GEP_PROTOCOL_H_
 
 #include <functional>  // for function
-#include <google/protobuf/message.h>  // for Message
 #include <map>  // for map
 #include <stdint.h>  // for uint32_t, uint8_t
 #include <string>  // for string
 
+#include "gep_common.h"  // for GepProtobufMessage
 
 // Callback function that will be called when a protobuf message is
 // received.
 // \param msg: the received message
 // \param context: (pointer to) a generic object
 // \return 0 if the callback went OK, >1 if not implemented, <0 otherwise
-typedef std::function<int(const ::google::protobuf::Message &msg,
+typedef std::function<int(const GepProtobufMessage &msg,
                           void *context)> GepCallback;
 
 typedef std::map<uint32_t, GepCallback> GepVFT;
@@ -41,17 +41,17 @@ class GepProtocol {
   void PrintHeader(uint32_t tag, uint32_t value_len, uint8_t *buf);
 
   // returns the tag associated to a message.
-  virtual uint32_t GetTag(const ::google::protobuf::Message *msg) = 0;
+  virtual uint32_t GetTag(const GepProtobufMessage *msg) = 0;
   // constructs an object of a given type.
-  virtual ::google::protobuf::Message *GetMessage(uint32_t tag) = 0;
+  virtual GepProtobufMessage *GetMessage(uint32_t tag) = 0;
 
   // converts a tag into a printable string
   int TagString(uint32_t tag, char *buf, int max_buf);
 
   // serializer code
   // Return an error code (true if ok, false if problems)
-  bool Serialize(const ::google::protobuf::Message &msg, std::string *s);
-  bool Unserialize(const std::string &s, ::google::protobuf::Message *msg);
+  bool Serialize(const GepProtobufMessage &msg, std::string *s);
+  bool Unserialize(const std::string &s, GepProtobufMessage *msg);
   enum Mode {
     MODE_TEXT = 0,  // use text-encoded protobuf messages
     MODE_BINARY = 1,  // use binary-encoded protobuf messages
@@ -76,7 +76,13 @@ class GepProtocol {
  protected:
   int port_;
   Mode mode_;
+#ifndef GEP_LITE
+  // default in vanilla (non-lite) mode
   static constexpr Mode kMode = MODE_TEXT;
+#else
+  // default (only option) in lite mode
+  static constexpr Mode kMode = MODE_BINARY;
+#endif
 
   // GEP protocol header
   static const uint32_t kOffsetMagic = 0;

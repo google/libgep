@@ -6,8 +6,8 @@
 #ifndef _SGP_PROTOCOL_H_
 #define _SGP_PROTOCOL_H_
 
+#include <gep_common.h>  // for GepProtobufMessage
 #include <gep_protocol.h>  // for MakeTag, GepProtocol
-#include <google/protobuf/message.h>  // for Message
 #include <stdint.h>  // for uint32_t
 
 
@@ -33,9 +33,9 @@ class SGPProtocol : public GepProtocol {
       MakeTag('c', 't', 'r', 'l');
 
   // returns the tag associated to a message.
-  virtual uint32_t GetTag(const ::google::protobuf::Message *msg);
+  virtual uint32_t GetTag(const GepProtobufMessage *msg);
   // constructs an object of a given type.
-  virtual ::google::protobuf::Message *GetMessage(uint32_t tag);
+  virtual GepProtobufMessage *GetMessage(uint32_t tag);
 };
 
 #endif  // _SGP_PROTOCOL_H_

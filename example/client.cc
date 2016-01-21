@@ -16,7 +16,11 @@
 #include <unistd.h>
 
 #include "sgp_protocol.h"  // for SGPProtocol, etc
+#ifndef GEP_LITE
 #include "sgp.pb.h"  // for Command1, etc
+#else
+#include "sgp_lite.pb.h"  // for Command1, etc
+#endif
 
 class MyClient: public SGPClient {
  public:
