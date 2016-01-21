@@ -47,6 +47,7 @@ command: COMMAND_GET_LOCK
 const char kInvalidMessage[] = "geppcmd3\000\000\000\001x";
 const char kHugeInvalidMessage[] = "geppcmd3\377\377\377\377yy";
 const char kUnsupportedMessage[] = "geppxyza\000\000\000\001x";
+const char kInvalidMagic[] = "abcdcmd4\000\000\000\015id: 123456789";
 
 static Command1 kOriginalCommand1;
 static Command3 kOriginalCommand3;
@@ -439,8 +440,51 @@ TEST_F(GepTest, DropUnsupportedMessage) {
   GepChannelArray *gca = server_->GetGepChannelArray();
   gca->SendMessage(kOriginalCommand3);
   // ensure we did not reconnect
+  usleep(1000);
   EXPECT_EQ(0, client_->GetReconnectCount());
   WaitForSync(2);
+}
+
+TEST_F(GepTest, EndToEndDifferentMagic) {
+  // use a different magic number
+  uint32_t new_magic = MakeTag('r', 'f', 'l', 'a');
+  cproto_->SetMagic(new_magic);
+  sproto_->SetMagic(new_magic);
+
+  // push message in the client
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SendMessage(kOriginalCommand1);
+
+  // push message in the server
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
+
+  // ensure we did not reconnect
+  usleep(1000);
+  EXPECT_EQ(0, client_->GetReconnectCount());
+  WaitForSync(2);
+}
+
+TEST_F(GepTest, DropUnsupportedMagicMessage) {
+  GepChannel *gc = client_->GetGepChannel();
+  // initially we are connected
+  EXPECT_NE(-1, gc->GetSocket());
+  EXPECT_EQ(0, client_->GetReconnectCount());
+  // get server socket so we can send the unknown message
+  int server_socket = server_->GetGepChannelArray()->GetVectorSocket(0);
+  // send a message with an unsupported magic
+  int size_msg = sizeof(kInvalidMagic) - 1;  // do not send the '\0'
+  EXPECT_EQ(size_msg, write(server_socket, kInvalidMagic, size_msg));
+  // push a message in the client
+  gc->SendMessage(kOriginalCommand1);
+  // push another message in the server
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  gca->SendMessage(kOriginalCommand3);
+  // ensure we did reconnect (invalid magic IDs cause the connection
+  // to reset)
+  usleep(1000);
+  EXPECT_EQ(1, client_->GetReconnectCount());
+  WaitForSync(1);
 }
 
 TEST_F(GepTest, MultipleMessagesAreAllReceived) {

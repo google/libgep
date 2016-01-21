@@ -36,9 +36,9 @@ class GepProtocol {
 
   // scans a buffer looking for a valid GEP header. Returns true if valid
   // header, false otherwise
-  static bool ScanHeader(uint8_t *buf, uint32_t *tag, uint32_t *value_len);
+  bool ScanHeader(uint8_t *buf, uint32_t *tag, uint32_t *value_len);
   // prints a a valid GEP header into a buffer
-  static void PrintHeader(uint32_t tag, uint32_t value_len, uint8_t *buf);
+  void PrintHeader(uint32_t tag, uint32_t value_len, uint8_t *buf);
 
   // returns the tag associated to a message.
   virtual uint32_t GetTag(const ::google::protobuf::Message *msg) = 0;
@@ -61,6 +61,8 @@ class GepProtocol {
   static uint32_t GetOffsetValue() { return kOffsetValue; }
   int64_t GetSelectTimeoutUsec() { return select_timeout_usec_; }
   void SetSelectTimeoutUsec(int64_t select_timeout_usec);
+  uint32_t GetMagic() const { return magic_; }
+  void SetMagic(uint32_t magic) { magic_ = magic; }
 
   // GEP protocol constants
   // maximum length of a single message
@@ -77,8 +79,8 @@ class GepProtocol {
   static const uint32_t kHdrLen = kOffsetValue;
 
   // protocol header
-  // TODO(chema): should we allow protocols to define their own magic?
   static constexpr uint32_t kMagic = MakeTag('g', 'e', 'p', 'p');
+  uint32_t magic_;
 
   // select() timeout, in usec
   int64_t select_timeout_usec_;

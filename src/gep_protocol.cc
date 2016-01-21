@@ -21,6 +21,7 @@ const int64_t kDefaultSelectTimeUsec = secs_to_usecs(1);
 
 GepProtocol::GepProtocol(int port)
     : port_(port),
+      magic_(kMagic),
       select_timeout_usec_(kDefaultSelectTimeUsec) {
 }
 
@@ -45,11 +46,11 @@ bool GepProtocol::ScanHeader(uint8_t *buf, uint32_t *tag, uint32_t *value_len) {
   *value_len = UINT32(buf + kOffsetLen);
 
   // check the magic number
-  return (magic == kMagic);
+  return (magic == magic_);
 }
 
 void GepProtocol::PrintHeader(uint32_t tag, uint32_t value_len, uint8_t *buf) {
-  SET_UINT32(buf + kOffsetMagic, kMagic);
+  SET_UINT32(buf + kOffsetMagic, magic_);
   SET_UINT32(buf + kOffsetTag, tag);
   SET_UINT32(buf + kOffsetLen, value_len);
 }
