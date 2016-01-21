@@ -531,3 +531,8 @@ TEST_F(GepTest, CallbackCrossed) {
   if (WaitForSync(1))
     th.join();
 }
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
