@@ -9,6 +9,7 @@ LIBDIR=$(DESTDIR)$(PREFIX)/lib
 
 all:     .protos_done $(addsuffix /all,$(DIRS))
 test:    $(addsuffix /test,$(DIRS))
+tests:    $(addsuffix /tests,$(DIRS))
 clean:   $(addsuffix /clean,$(DIRS))
 install: $(addsuffix /install,$(DIRS))
 install-libs: $(addsuffix /install-libs,$(DIRS))
@@ -24,6 +25,9 @@ test/test example/all : src/all
 
 %/test:
 	$(MAKE) -C $* test
+
+%/tests:
+	$(MAKE) -C $* tests
 
 %/clean:
 	$(MAKE) -C $* clean
