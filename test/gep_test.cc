@@ -235,7 +235,7 @@ void GepTest::SetUp() {
   EXPECT_TRUE(cproto_->Serialize(kControlMessageGetLock,
                                  &kControlMessageGetLockStr));
 
-  // start server
+  // start server in a random port
   server_->GetProto()->SetPort(0);
   EXPECT_EQ(0, server_->Start());
   int port = server_->GetProto()->GetPort();
@@ -498,15 +498,16 @@ TEST_F(GepTest, DropUnsupportedMagicMessage) {
   // send a message with an unsupported magic
   int size_msg = sizeof(kInvalidMagic) - 1;  // do not send the '\0'
   EXPECT_EQ(size_msg, write(server_socket, kInvalidMagic, size_msg));
+  // wait until we reconnect (invalid magic IDs cause the connection
+  // to reset)
+  while (client_->GetReconnectCount() == 0)
+    usleep(1000);
+  EXPECT_EQ(1, client_->GetReconnectCount());
   // push a message in the client
   gc->SendMessage(kOriginalCommand1);
   // push another message in the server
   GepChannelArray *gca = server_->GetGepChannelArray();
   gca->SendMessage(kOriginalCommand3);
-  // ensure we did reconnect (invalid magic IDs cause the connection
-  // to reset)
-  usleep(1000);
-  EXPECT_EQ(1, client_->GetReconnectCount());
   WaitForSync(1);
 }
 
