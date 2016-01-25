@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <functional>
 #include <gep_protocol.h>
 #include <gep_client.h>
 #include <gep_server.h>
@@ -94,6 +95,7 @@ class GepTest : public ::testing::Test {
   void SetUp();
   void TearDown();
   static bool WaitForSync(int number);
+  static bool WaitForTrue(std::function<bool()> fun);
 
   TestProtocol *cproto_;
   TestProtocol *sproto_;
@@ -114,6 +116,7 @@ class GepTest : public ::testing::Test {
 
  private:
   static std::atomic<int> synced_;
+  static int GetSynced() { return synced_; }
 };
 
 int64_t GepTest::kWaitTimeoutUsecs = secs_to_usecs(6);
@@ -176,14 +179,18 @@ bool GepTest::Recv(const ControlMessage &msg, int id) {
   return true;
 }
 
-bool GepTest::WaitForSync(int number) {
-  // ensure both sides can receive their messages
+bool GepTest::WaitForTrue(std::function<bool()> fun) {
   int64_t max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (synced_ < number && GetUnixTimeUsec() < max_time)
+  bool result = fun();
+  while (!result && GetUnixTimeUsec() < max_time) {
     usleep(1000);
-  // ensure we did not timeout
-  EXPECT_GE(synced_, number);
-  return (synced_ >= number);
+    result = fun();
+  }
+  return result;
+}
+
+bool GepTest::WaitForSync(int number) {
+  return WaitForTrue([=]() {return GetSynced() >= number;});
 }
 
 void GepTest::SetUpTestCase() {
@@ -246,11 +253,7 @@ void GepTest::SetUp() {
   EXPECT_EQ(0, client_->Start());
 
   // ensure the server has seen the client
-  int64_t max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (server_->GetNumClients() == 0 && GetUnixTimeUsec() < max_time)
-    usleep(1000);
-  // ensure we did not timeout
-  EXPECT_NE(server_->GetNumClients(), 0);
+  ASSERT_TRUE(WaitForTrue([=]() {return server_->GetNumClients() != 0;}));
 }
 
 void GepTest::TearDown() {
@@ -361,17 +364,11 @@ TEST_F(GepTest, ClientReconnect) {
   // stop the server
   server_->Stop();
   // check that the client channel becomes disconnected
-  int64_t max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (gc->GetSocket() != -1 && GetUnixTimeUsec() < max_time)
-    usleep(1000);
-  EXPECT_EQ(-1, gc->GetSocket());
+  ASSERT_TRUE(WaitForTrue([=]() {return gc->GetSocket() == -1;}));
   // restart the server
   server_->Start();
   // check that the client reconnected
-  max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (gc->GetSocket() == -1 && GetUnixTimeUsec() < max_time)
-    usleep(1000);
-  EXPECT_NE(-1, gc->GetSocket());
+  ASSERT_TRUE(WaitForTrue([=]() {return gc->GetSocket() != -1;}));
 }
 
 TEST_F(GepTest, ClientReconnectOnGarbageData) {
@@ -385,11 +382,7 @@ TEST_F(GepTest, ClientReconnectOnGarbageData) {
   int size_msg = sizeof(kInvalidMessage) - 1;  // do not send the '\0'
   EXPECT_EQ(size_msg, write(server_socket, kInvalidMessage, size_msg));
   // check that the client reconnected
-  int64_t max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (client_->GetReconnectCount() < 1 && GetUnixTimeUsec() < max_time)
-    usleep(1000);
-  // ensure we did not timeout
-  EXPECT_LE(1, client_->GetReconnectCount());
+  ASSERT_TRUE(WaitForTrue([=]() {return client_->GetReconnectCount() >= 1;}));
   EXPECT_NE(-1, gc->GetSocket());
 }
 
@@ -404,17 +397,10 @@ TEST_F(GepTest, ClientReconnectOnHugeMessageData) {
   int size_msg = sizeof(kHugeInvalidMessage) - 1;  // do not send the '\0'
   EXPECT_EQ(size_msg, write(server_socket, kHugeInvalidMessage, size_msg));
   // check that the client reconnected
-  int64_t max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (client_->GetReconnectCount() < 1 && GetUnixTimeUsec() < max_time)
-    usleep(1000);
-  // ensure we did not timeout
-  EXPECT_LE(1, client_->GetReconnectCount());
+  ASSERT_TRUE(WaitForTrue([=]() {return client_->GetReconnectCount() >= 1;}));
   EXPECT_NE(-1, gc->GetSocket());
   // ensure the server is seeing the client
-  max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-  while (server_->GetNumClients() == 0 && GetUnixTimeUsec() < max_time)
-    usleep(1000);
-  EXPECT_EQ(1, server_->GetNumClients());
+  ASSERT_TRUE(WaitForTrue([=]() {return server_->GetNumClients() == 1;}));
   // push message in the server
   GepChannelArray *gca = server_->GetGepChannelArray();
   gca->SendMessage(kOriginalCommand3);
@@ -434,16 +420,9 @@ TEST_F(GepTest, ClientRestart) {
     // restart the client
     ASSERT_EQ(0, client_->Start());
     // ensure the server has seen the client
-    int64_t max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-    while (server_->GetNumClients() == 0 && GetUnixTimeUsec() < max_time)
-      usleep(1000);
-    // ensure we did not timeout
-    ASSERT_NE(0, server_->GetNumClients());
+    ASSERT_TRUE(WaitForTrue([=]() {return server_->GetNumClients() != 0;}));
     // check that the client reconnected
-    max_time = GetUnixTimeUsec() + kWaitTimeoutUsecs;
-    while (gc->GetSocket() == -1 && GetUnixTimeUsec() < max_time)
-      usleep(1000);
-    ASSERT_NE(-1, gc->GetSocket());
+    ASSERT_TRUE(WaitForTrue([=]() {return gc->GetSocket() != -1;}));
   }
 }
 
@@ -463,7 +442,6 @@ TEST_F(GepTest, DropUnsupportedMessage) {
   GepChannelArray *gca = server_->GetGepChannelArray();
   gca->SendMessage(kOriginalCommand3);
   // ensure we did not reconnect
-  usleep(1000);
   EXPECT_EQ(0, client_->GetReconnectCount());
   WaitForSync(2);
 }
@@ -483,7 +461,6 @@ TEST_F(GepTest, EndToEndDifferentMagic) {
   gca->SendMessage(kOriginalCommand3);
 
   // ensure we did not reconnect
-  usleep(1000);
   EXPECT_EQ(0, client_->GetReconnectCount());
   WaitForSync(2);
 }
@@ -498,11 +475,8 @@ TEST_F(GepTest, DropUnsupportedMagicMessage) {
   // send a message with an unsupported magic
   int size_msg = sizeof(kInvalidMagic) - 1;  // do not send the '\0'
   EXPECT_EQ(size_msg, write(server_socket, kInvalidMagic, size_msg));
-  // wait until we reconnect (invalid magic IDs cause the connection
-  // to reset)
-  while (client_->GetReconnectCount() == 0)
-    usleep(1000);
-  EXPECT_EQ(1, client_->GetReconnectCount());
+  // ensure we reconnect (invalid magic IDs cause the connection to reset)
+  ASSERT_TRUE(WaitForTrue([=]() {return client_->GetReconnectCount() == 1;}));
   // push a message in the client
   gc->SendMessage(kOriginalCommand1);
   // push another message in the server
@@ -624,7 +598,6 @@ TEST_F(GepTest, EndToEndBinaryProtocol) {
   gca->SendMessage(kOriginalCommand3);
 
   // ensure we did not reconnect
-  usleep(1000);
   EXPECT_EQ(0, client_->GetReconnectCount());
   WaitForSync(2);
 }
