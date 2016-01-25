@@ -76,8 +76,8 @@ client_lite : LIBS+=-lprotobuf-lite -L../src/ -lgepclient-lite
 server_lite : LIBS+=-lprotobuf-lite -L../src/ -lgepserver-lite
 
 runtests: client server client_lite server_lite
-	./run_client_and_server.sh client server 9008
-	./run_client_and_server.sh client_lite server_lite 9009
+	./run_client_and_server.sh ./client ./server 9008
+	./run_client_and_server.sh ./client_lite ./server_lite 9009
 
 install:
 
