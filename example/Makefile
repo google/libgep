@@ -80,8 +80,12 @@ client_lite : LIBS+=-lprotobuf-lite -L../src/ -lgepclient-lite
 
 server_lite : LIBS+=-lprotobuf-lite -L../src/ -lgepserver-lite
 
-runtests : client server client_lite server_lite
+runtests : runtests-full runtests-lite
+
+runtests-full : client server
 	./run_client_and_server.sh ./client ./server
+
+runtests-lite : client_lite server_lite
 	./run_client_and_server.sh ./client_lite ./server_lite
 
 install:

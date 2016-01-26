@@ -1,8 +1,6 @@
 *~
 asan_logs/*.log
-coverage_html/*.html
-coverage_html/*.png
-coverage_html/*.css
+coverage_html/
 .cproject
 *.gcda
 *.gcno
@@ -15,8 +13,8 @@ coverage_html/*.css
 *.so
 .stamp_*
 *_test
-test/gep_test
-test/gep_test_lite
+test/*_test
+test/*_test_lite
 example/client
 example/server
 example/client_lite

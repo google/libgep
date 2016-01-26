@@ -14,6 +14,8 @@ COV_SUBDIRS=$(filter-out include,$(SUBDIRS))
 
 all:     .protos_done $(addsuffix /all,$(SUBDIRS))
 test:    $(addsuffix /test,$(SUBDIRS))
+test-full:    $(addsuffix /test-full,$(SUBDIRS))
+test-lite:    $(addsuffix /test-lite,$(SUBDIRS))
 tests:   .protos_done $(addsuffix /tests,$(SUBDIRS))
 clean::  $(addsuffix /clean,$(SUBDIRS))
 install: $(addsuffix /install,$(SUBDIRS))
@@ -32,6 +34,12 @@ test/test example/all : src/all
 
 %/test:
 	$(MAKE) -C $* test
+
+%/test-full:
+	$(MAKE) -C $* test-full
+
+%/test-lite:
+	$(MAKE) -C $* test-lite
 
 %/tests:
 	$(MAKE) -C $* tests
@@ -60,7 +68,6 @@ AddressSanitizer:
 # Run proper host target coverage from scratch
 host-coverage:
 	$(MAKE) clean
-	$(MAKE) USE_COV=1 NO_CLANG=1 test
 	$(MAKE) -j1 gen_cov_report
 
 # Build cross-platform image with coverage enabled
@@ -71,11 +78,20 @@ cross-coverage:
 # Coverage HTML output directory
 COV_HTML_OUT=coverage_html
 
-gen_cov_report: cov
-	$(GENINFO) --gcov-tool gcov --no-external --no-recursion $(COV_SUBDIRS) \
-      --output-file libgep.info
+gen_cov_report: cov geninfo-full geninfo-lite
+	lcov --add-tracefile libgep-full.info -a libgep-lite.info -o libgep.info
 	$(GENHTML) -o $(COV_HTML_OUT)/ --highlight --legend -t $(COV_HTML_OUT)/ \
       libgep.info
+
+geninfo-full:
+	$(MAKE) USE_COV=1 NO_CLANG=1 test-full
+	$(GENINFO) --gcov-tool gcov --no-external --no-recursion $(COV_SUBDIRS) \
+      --output-file libgep-full.info
+
+geninfo-lite:
+	$(MAKE) USE_COV=1 NO_CLANG=1 test-lite
+	$(GENINFO) --gcov-tool gcov --no-external --no-recursion $(COV_SUBDIRS) \
+      --output-file libgep-lite.info
 
 clean::
 	rm -rf *~ .*~ */*.pb.* *.log .protos_done

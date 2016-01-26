@@ -130,6 +130,10 @@ clean:: $(patsubst %,%/clean,$(SUBDIRS))
 	$(MAKE) -C $* all
 %/test:
 	$(MAKE) -C $* test
+%/test-full:
+	$(MAKE) -C $* test-full
+%/test-lite:
+	$(MAKE) -C $* test-lite
 %/tests:
 	$(MAKE) -C $* tests
 %/clean:
@@ -165,6 +169,22 @@ test: tests
 runtests: \
     $(patsubst %,%/test,$(SUBDIRS)) \
     $(patsubst %,%.test,$(TEST_TARGETS))
+
+# add full vs. lite tests (which reuse the same source code)
+test-full: tests
+	$(MAKE) -k runtests-full
+
+runtests-full: \
+    $(patsubst %,%/test,$(SUBDIRS)) \
+    $(patsubst %,%.test,$(TEST_TARGETS_FULL))
+
+test-lite: tests
+	$(MAKE) -k runtests-lite
+
+runtests-lite: \
+    $(patsubst %,%/test,$(SUBDIRS)) \
+    $(patsubst %,%.test,$(TEST_TARGETS_LITE))
+
 
 cov: $(patsubst %,%/cov,$(COV_SUBDIRS))
 
