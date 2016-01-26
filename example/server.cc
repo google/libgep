@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
 
   // get the port number
   int port = my_server->GetProto()->GetPort();
-  fprintf(stdout, "server listing in port %i\n", port);
+  fprintf(stdout, "server listening in port %i\n", port);
 
   // tell the client about the port
   char wbuf[MAX_BUF];
