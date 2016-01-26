@@ -1,5 +1,10 @@
 TOP:=..
 TARGETS= client server client_lite server_lite
+
+# add the local gep libraries info before the hostdir ones get added
+CPPFLAGS+=-I../include
+LDFLAGS+=-L../src
+
 include ../rules.mk
 
 CPPFLAGS+=-I. -I.. -I../include
@@ -75,7 +80,7 @@ client_lite : LIBS+=-lprotobuf-lite -L../src/ -lgepclient-lite
 
 server_lite : LIBS+=-lprotobuf-lite -L../src/ -lgepserver-lite
 
-runtests: client server client_lite server_lite
+runtests : client server client_lite server_lite
 	./run_client_and_server.sh ./client ./server
 	./run_client_and_server.sh ./client_lite ./server_lite
 

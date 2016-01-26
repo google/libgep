@@ -32,8 +32,8 @@ endif
 ifeq ($(CROSS_PREFIX),)
 CC:=$(HOST_CC)
 CXX:=$(HOST_CXX)
-CPPFLAGS=-I$(HOSTDIR)/usr/include
-LDFLAGS=-L$(HOSTDIR)/usr/lib
+CPPFLAGS+=-I$(HOSTDIR)/usr/include
+LDFLAGS+=-L$(HOSTDIR)/usr/lib
 else
 CC:=$(CROSS_PREFIX)gcc
 CXX:=$(CROSS_PREFIX)g++
@@ -166,10 +166,7 @@ runtests: \
     $(patsubst %,%/test,$(SUBDIRS)) \
     $(patsubst %,%.test,$(TEST_TARGETS))
 
-cov: .cov $(patsubst %,%/cov,$(COV_SUBDIR))
-
-.cov:
-	$(GENINFO) --gcov-tool gcov --no-external --no-recursion .
+cov: $(patsubst %,%/cov,$(COV_SUBDIRS))
 
 tests-tsan:
 	$(MAKE) USE_TSAN=1 tests

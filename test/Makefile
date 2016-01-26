@@ -1,5 +1,10 @@
 TOP:=..
 TEST_TARGETS= gep_test gep_test_lite
+
+# add the local gep libraries info before the hostdir ones get added
+CPPFLAGS+=-I../include
+LDFLAGS+=-L../src
+
 include ../rules.mk
 
 CPPFLAGS+=-I. -I.. -I../include
