@@ -11,8 +11,9 @@
 
 #include "sgp_client.h"
 
-#include <limits.h>
+#include <fcntl.h>
 #include <getopt.h>
+#include <limits.h>
 #include <unistd.h>
 
 #include "sgp_protocol.h"  // for SGPProtocol, etc
@@ -68,7 +69,7 @@ bool MyClient::Recv(const Command4 &msg) {
 
 typedef struct arg_values
 {
-  int port;
+  char *fifo;
   int cnt1;
   int cnt2;
   int cnt3;
@@ -89,6 +90,8 @@ void usage(char *name)
 {
   fprintf(stderr, "usage: %s [options]\n", name);
   fprintf(stderr, "where options are:\n");
+  fprintf(stderr, "\t--fifo <fifo>:\tUse <fifo> for client-server "
+          "communications\n");
   fprintf(stderr, "\t--cnt1 <cnt>:\tSend <cnt> Command1 messages [%i]\n",
       DEFAULT_CNT1);
   fprintf(stderr, "\t--cnt2 <cnt>:\tSend <cnt> Command2 messages [%i]\n",
@@ -126,7 +129,7 @@ arg_values *parse_args(int argc, char** argv) {
   static struct option longopts[] = {
     // matching options to short options
     {"help", no_argument, NULL, 'h'},
-    {"port", required_argument, NULL, 'p'},
+    {"fifo", required_argument, NULL, 'f'},
     // options without a short option match
     {"cnt1", required_argument, NULL, CNT1OPTION},
     {"cnt2", required_argument, NULL, CNT2OPTION},
@@ -138,13 +141,8 @@ arg_values *parse_args(int argc, char** argv) {
   char *endptr;
   while ((c = getopt_long(argc, argv, "", longopts, &optindex)) != -1) {
     switch (c) {
-      case 'p':
-        values.port = strtol(optarg, &endptr, 0);
-        if (*endptr != '\0')
-          {
-          usage(argv[0]);
-          exit(-1);
-          }
+      case 'f':
+        values.fifo = optarg;
         break;
 
       case CNT1OPTION:
@@ -204,15 +202,30 @@ arg_values *parse_args(int argc, char** argv) {
 }
 
 
+#define MAX_BUF 1024
+
 int main(int argc, char **argv) {
   arg_values *values;
 
   // parse args
   values = parse_args(argc, argv);
 
+  // use the fifo to get the port number from the server
+  int fd = open(values->fifo, O_RDWR);
+  char rbuf[MAX_BUF];
+  read(fd, rbuf, MAX_BUF);
+  close(fd);
+  char *endptr;
+  int port = strtol(rbuf, &endptr, 0);
+  if (*endptr != '\0') {
+    printf("client: did not get a valid port number: \"%s\"\n", rbuf);
+    exit(-1);
+  }
+  printf("client: will use port %i\n", port);
+
   // create the client
   std::unique_ptr<MyClient> my_client;
-  my_client.reset(new MyClient(values->port));
+  my_client.reset(new MyClient(port));
 
   // start the client
   int tries = 0;

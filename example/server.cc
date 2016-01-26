@@ -11,8 +11,9 @@
 
 #include "sgp_server.h"
 
-#include <limits.h>
+#include <fcntl.h>
 #include <getopt.h>
+#include <limits.h>
 #include <unistd.h>
 
 #include "sgp_protocol.h"  // for SGPProtocol, etc
@@ -75,7 +76,7 @@ bool MyServer::Recv(const Command4 &msg, int id) {
 
 typedef struct arg_values
 {
-  int port;
+  char *fifo;
   int cnt1;
   int cnt2;
   int cnt3;
@@ -96,6 +97,8 @@ void usage(char *name)
 {
   fprintf(stderr, "usage: %s [options]\n", name);
   fprintf(stderr, "where options are:\n");
+  fprintf(stderr, "\t--fifo <fifo>:\tUse <fifo> for client-server "
+          "communications\n");
   fprintf(stderr, "\t--cnt1 <cnt>:\tSend <cnt> Command1 messages [%i]\n",
       DEFAULT_CNT1);
   fprintf(stderr, "\t--cnt2 <cnt>:\tSend <cnt> Command2 messages [%i]\n",
@@ -133,7 +136,7 @@ arg_values *parse_args(int argc, char** argv) {
   static struct option longopts[] = {
     // matching options to short options
     {"help", no_argument, NULL, 'h'},
-    {"port", required_argument, NULL, 'p'},
+    {"fifo", required_argument, NULL, 'f'},
     // options without a short option match
     {"cnt1", required_argument, NULL, CNT1OPTION},
     {"cnt2", required_argument, NULL, CNT2OPTION},
@@ -145,13 +148,8 @@ arg_values *parse_args(int argc, char** argv) {
   char *endptr;
   while ((c = getopt_long(argc, argv, "", longopts, &optindex)) != -1) {
     switch (c) {
-      case 'p':
-        values.port = strtol(optarg, &endptr, 0);
-        if (*endptr != '\0')
-          {
-          usage(argv[0]);
-          exit(-1);
-          }
+      case 'f':
+        values.fifo = optarg;
         break;
 
       case CNT1OPTION:
@@ -210,6 +208,7 @@ arg_values *parse_args(int argc, char** argv) {
   return &values;
 }
 
+#define MAX_BUF 1024
 
 int main(int argc, char **argv) {
   arg_values *values;
@@ -219,7 +218,7 @@ int main(int argc, char **argv) {
 
   // create the server
   std::unique_ptr<MyServer> my_server;
-  my_server.reset(new MyServer(values->port));
+  my_server.reset(new MyServer(0));
 
   // start the server
   if (my_server->Start() < 0) {
@@ -227,6 +226,18 @@ int main(int argc, char **argv) {
     return -1;
   }
 
+  // get the port number
+  int port = my_server->GetProto()->GetPort();
+  fprintf(stdout, "server listing in port %i\n", port);
+
+  // tell the client about the port
+  char wbuf[MAX_BUF];
+  sprintf(wbuf, "%i", port);
+  int fd = open(values->fifo, O_WRONLY);
+  write(fd, wbuf, strlen(wbuf));
+  close(fd);
+
+  // wait until we see a client message
   while (!my_server->seen_client_)
     std::this_thread::yield();
 
