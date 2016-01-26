@@ -213,7 +213,8 @@ int main(int argc, char **argv) {
   // use the fifo to get the port number from the server
   int fd = open(values->fifo, O_RDWR);
   char rbuf[MAX_BUF];
-  read(fd, rbuf, MAX_BUF);
+  int len = read(fd, rbuf, MAX_BUF);
+  rbuf[len] = '\0';
   close(fd);
   char *endptr;
   int port = strtol(rbuf, &endptr, 0);
