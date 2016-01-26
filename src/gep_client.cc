@@ -47,7 +47,7 @@ GepClient::~GepClient() {
 }
 
 int GepClient::Start() {
-  if (gep_channel_->OpenClientSocket(proto_->GetPort()) < 0) {
+  if (gep_channel_->OpenClientSocket() < 0) {
     gep_log(LOG_ERROR,
             "%s(*):cannot open server socket.",
             name_.c_str());
@@ -77,7 +77,7 @@ void GepClient::Reconnect() {
   gep_log(LOG_WARNING,
           "%s(*):reconnecting to server socket.",
           name_.c_str());
-  if (gep_channel_->OpenClientSocket(proto_->GetPort()) < 0) {
+  if (gep_channel_->OpenClientSocket() < 0) {
     gep_log(LOG_ERROR,
             "%s(*):cannot open server socket.",
             name_.c_str());

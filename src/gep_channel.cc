@@ -43,13 +43,11 @@ GepChannel::~GepChannel() {
 }
 
 
-int GepChannel::OpenClientSocket(int port) {
-  int new_socket;
-
-  if (port == -1)
-    port = proto_->GetPort();
+int GepChannel::OpenClientSocket() {
+  int port = proto_->GetPort();
 
   // Open socket.
+  int new_socket;
   if ((new_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     gep_log(LOG_ERROR,
             "%s(%i):Error-cannot open client socket",

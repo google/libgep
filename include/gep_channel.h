@@ -32,7 +32,7 @@ class GepChannel {
   virtual int SendMessage(const GepProtobufMessage &msg);
 
   // socket opening/closing
-  int OpenClientSocket(int port = -1);
+  int OpenClientSocket();
   int Close();
 
   // accessors
