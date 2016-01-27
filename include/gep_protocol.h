@@ -70,7 +70,7 @@ class GepProtocol {
   void SetMagic(uint32_t magic) { magic_ = magic; }
 
   // GEP protocol constants
-  // maximum length of a single message
+  // maximum length of a single message (including 12-byte header)
   static const uint32_t kMaxMsgLen = 1 << 20;
 
  protected:

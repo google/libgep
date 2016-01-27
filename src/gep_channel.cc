@@ -197,16 +197,7 @@ GepChannel::Result GepChannel::RecvString() {
       len_ = 0;
       return CMD_ERROR;
     }
-
-    // ensure the message length is ok for the channel buffer
-    uint32_t msg_len = value_len + proto_->GetHdrLen();
-    if (msg_len >= sizeof(buf_)) {
-      gep_log(LOG_ERROR,
-              "%s:recv(%i):Error-Message length too large (%" PRIu32 " >= %zu)",
-              name_.c_str(), id_, msg_len, sizeof(buf_));
-      len_ = 0;
-      return CMD_ERROR;
-    }
+    uint32_t msg_len = proto_->GetHdrLen() + value_len;
 
     // process fragmented packets
     if (len_ < msg_len) {
