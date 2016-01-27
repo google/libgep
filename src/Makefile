@@ -24,22 +24,22 @@ libgepclient.a: \
 	$(make_lib)
 
 utils_lite.o: utils.cc
-	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ utils.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ $<
 
 gep_protocol_lite.o: gep_protocol.cc
-	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_protocol.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ $<
 
 gep_channel_lite.o: gep_channel.cc
-	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_channel.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ $<
 
 gep_channel_array_lite.o: gep_channel_array.cc
-	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_channel_array.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ $<
 
 gep_server_lite.o: gep_server.cc
-	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_server.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ $<
 
 gep_client_lite.o: gep_client.cc
-	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ gep_client.cc
+	$(CXX) $(TEST_CPPFLAGS) $(TEST_CXXFLAGS) -DGEP_LITE -c -o $@ $<
 
 libgepserver-lite.a: CPPFLAGS+=-DGEP_LITE
 
