@@ -17,7 +17,7 @@ TEST_TARGETS_LITE= \
 TEST_TARGETS= $(TEST_TARGETS_FULL) $(TEST_TARGETS_LITE)
 
 # add the local gep libraries info before the hostdir ones get added
-CPPFLAGS+=-I../include
+CPPFLAGS+=-I../include -I../src
 LDFLAGS+=-L../src
 
 include ../rules.mk

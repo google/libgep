@@ -43,6 +43,14 @@ TEST_F(GepEndToEndTest, BasicEndToEnd) {
   WaitForSync(2);
 }
 
+TEST_F(GepEndToEndTest, CallbackFailure) {
+  // push message in the client
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SendMessage(command2_);
+
+  WaitForSync(1);
+}
+
 void GepEndToEndTest::SenderPusherThread() {
   // wait for the ready signal
   while (!ready_)

@@ -44,6 +44,13 @@ bool GepTest::Recv(const Command1 &msg, int id) {
   return true;
 }
 
+bool GepTest::Recv(const Command2 &msg, int id) {
+  // check the msg received in the client
+  EXPECT_TRUE(ProtobufEqual(command2_, msg));
+  DoSync();
+  return false;
+}
+
 bool GepTest::Recv(const Command3 &msg, int id) {
   // check the msg received in the client
   EXPECT_TRUE(ProtobufEqual(command3_, msg));

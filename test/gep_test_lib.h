@@ -67,6 +67,7 @@ class GepTest : public ::testing::Test {
   // protocol object callbacks: These are object (non-static) callback
   // methods, which is handy for the callers.
   virtual bool Recv(const Command1 &msg, int id);
+  virtual bool Recv(const Command2 &msg, int id);
   virtual bool Recv(const Command3 &msg, int id);
   virtual bool Recv(const Command4 &msg, int id);
   virtual bool Recv(const ControlMessage &msg, int id);
@@ -76,6 +77,7 @@ class GepTest : public ::testing::Test {
 
   // messages for testing
   Command1 command1_;
+  Command2 command2_;
   Command3 command3_;
   Command4 command4_;
   ControlMessage control_message_ping_;
@@ -84,6 +86,7 @@ class GepTest : public ::testing::Test {
 
   // text version
   std::string command1_str_;
+  std::string command2_str_;
   std::string command3_str_;
   std::string command4_str_;
   std::string control_message_ping_str_;
@@ -125,6 +128,7 @@ class GepTest : public ::testing::Test {
 
 const GepVFT kGepTestOps = {
   {TestProtocol::MSG_TAG_COMMAND_1, &RecvMessageId<GepTest, Command1>},
+  {TestProtocol::MSG_TAG_COMMAND_2, &RecvMessageId<GepTest, Command2>},
   {TestProtocol::MSG_TAG_COMMAND_3, &RecvMessageId<GepTest, Command3>},
   {TestProtocol::MSG_TAG_COMMAND_4, &RecvMessageId<GepTest, Command4>},
   {TestProtocol::MSG_TAG_CONTROL, &RecvMessageId<GepTest, ControlMessage>},
