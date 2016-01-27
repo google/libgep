@@ -41,6 +41,8 @@ class GepChannel {
   void SetSocket(int socket);
   bool IsOpenSocket();
   void *GetContext() const { return context_; }
+  int GetLen() const { return len_; }
+  void SetLen(int len) { len_ = len; }
 
   // some constants
   // maximum time to wait for a send

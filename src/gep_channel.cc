@@ -112,11 +112,11 @@ int GepChannel::RecvData() {
     gep_log(LOG_ERROR,
             "%s:recv(%i):Error-invalid socket %d",
             name_.c_str(), id_, socket_);
-    return 0;
+    return -1;
   }
 
   // check there is some space in the buffer
-  if (sizeof(buf_) - len_ <= 0) {
+  if (len_ >= sizeof(buf_)) {
     gep_log(LOG_ERROR,
             "%s:recv(%i):Error-buf_ full (%i/%zu)",
             name_.c_str(), id_, len_, sizeof(buf_));

@@ -25,6 +25,21 @@ TEST_F(GepChannelTest, SetSocket) {
   WaitForSync(2);
 }
 
+TEST_F(GepChannelTest, RecvDataInvalidSocket) {
+  // set an invalid socket
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SetSocket(-1);
+  EXPECT_EQ(-1, gc->RecvData());
+}
+
+
+TEST_F(GepChannelTest, RecvDataBufferFull) {
+  // add too much read data
+  GepChannel *gc = client_->GetGepChannel();
+  gc->SetLen(GepProtocol::kMaxMsgLen + 1);
+  EXPECT_EQ(-1, gc->RecvData());
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
