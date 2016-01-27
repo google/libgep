@@ -22,7 +22,8 @@
 #include "gep_channel.h"  // for GepChannel
 #include "gep_common.h"  // for GepProtobufMessage
 #include "gep_server.h"  // for GepChannel
-#include "utils.h"  // for set_socket_no_delay, etc
+#include "socket_interface.h"  // for SocketInterface
+#include "utils.h"  // for gep_log, gep_perror, etc
 
 using namespace libgep_utils;
 
@@ -37,6 +38,11 @@ GepChannelArray::GepChannelArray(const std::string &name, GepServer *server,
      max_channels_(max_channels),
      last_channel_id_(0),
      server_socket_(-1) {
+  socket_interface_ = new SocketInterface();
+}
+
+GepChannelArray::~GepChannelArray() {
+  delete socket_interface_;
 }
 
 void GepChannelArray::ClearGepChannelVector() {
@@ -46,19 +52,19 @@ void GepChannelArray::ClearGepChannelVector() {
 int GepChannelArray::OpenServerSocket() {
   int sock_fd;
 
-  if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+  if ((sock_fd = socket_interface_->Socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     gep_perror(errno, "%s(*):Error-opening socket failed-", name_.c_str());
     return -1;
   }
 
-  if (set_socket_reuse_addr(name_.c_str(), sock_fd) < 0) {
+  if (socket_interface_->SetReuseAddr(name_.c_str(), sock_fd) < 0) {
     close(sock_fd);
     return -1;
   }
 
-  set_socket_non_blocking(name_.c_str(), sock_fd);
-  set_socket_no_delay(name_.c_str(), sock_fd);
-  set_socket_priority(name_.c_str(), sock_fd, 4);
+  socket_interface_->SetNonBlocking(name_.c_str(), sock_fd);
+  socket_interface_->SetNoDelay(name_.c_str(), sock_fd);
+  socket_interface_->SetPriority(name_.c_str(), sock_fd, 4);
 
   struct sockaddr_in serveraddr;
   serveraddr.sin_family = AF_INET;
@@ -67,13 +73,14 @@ int GepChannelArray::OpenServerSocket() {
   serveraddr.sin_port = htons(proto_->GetPort());
   memset(&(serveraddr.sin_zero), '\0', 8);
 
-  if (bind(sock_fd, (struct sockaddr*)&serveraddr, sizeof(serveraddr)) == -1) {
+  if (socket_interface_->Bind(sock_fd, (struct sockaddr*)&serveraddr,
+                             sizeof(serveraddr)) == -1) {
     gep_perror(errno, "%s(*):Error-bind service socket-", name_.c_str());
     close(sock_fd);
     return -1;
   }
 
-  if (listen(sock_fd, 4) == -1) {
+  if (socket_interface_->Listen(sock_fd, 4) == -1) {
     gep_perror(errno, "%s(*):Error-listen on service socket-",
                  name_.c_str());
     close(sock_fd);
@@ -83,7 +90,7 @@ int GepChannelArray::OpenServerSocket() {
   if (proto_->GetPort() == 0) {
     // port was dynamically assigned, get it and save it
     int port;
-    if (get_socket_port(name_.c_str(), sock_fd, &port) < 0) {
+    if (socket_interface_->GetPort(name_.c_str(), sock_fd, &port) < 0) {
       close(sock_fd);
       return -1;
     }
@@ -138,19 +145,20 @@ int GepChannelArray::AcceptConnection() {
   int new_socket;
   struct sockaddr clientaddr;
   socklen_t addrlen = sizeof(struct sockaddr_in);
-  if ((new_socket = accept(server_socket_, &clientaddr, &addrlen)) == -1) {
+  if ((new_socket = socket_interface_->Accept(server_socket_, &clientaddr,
+                                              &addrlen)) == -1) {
     gep_perror(errno, "%s(*):ERROR accepting new connection using "
                 "socket %d", name_.c_str(), new_socket);
     return -1;
   }
   char tmp[32];
-  char *peer_ip = get_peer_ip(new_socket, tmp, sizeof(tmp));
+  char *peer_ip = socket_interface_->GetPeerIP(new_socket, tmp, sizeof(tmp));
   gep_log(LOG_DEBUG,
           "%s(*):socket %d accepted connection from %s using socket %d",
           name_.c_str(), server_socket_, peer_ip, new_socket);
-  set_socket_non_blocking(name_.c_str(), new_socket);
-  set_socket_no_delay(name_.c_str(), new_socket);
-  set_socket_priority(name_.c_str(), new_socket, 4);
+  socket_interface_->SetNonBlocking(name_.c_str(), new_socket);
+  socket_interface_->SetNoDelay(name_.c_str(), new_socket);
+  socket_interface_->SetPriority(name_.c_str(), new_socket, 4);
   AddChannel(new_socket);
   return 0;
 }

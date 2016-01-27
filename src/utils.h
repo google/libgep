@@ -121,6 +121,8 @@ static inline struct timeval usecs_to_timeval(int64_t usecs) {
   return out;
 }
 
+uint64_t ms_elapse(uint64_t start_time_ms);
+
 // Returns the current timestamp as an int64_t (microseconds since unix epoch).
 int64_t GetUnixTimeUsec();
 
@@ -147,29 +149,6 @@ const int kDateStringLen = 64;
 // Prints date (use tv=NULL for current) in a standard format (iso 8601).
 // Set "full" to true to print the whole date, false for a concise version.
 int snprintf_date(char *buf, int bufsize, const struct timeval *tv, bool full);
-
-// non-blocking send/recv
-// Sends the given data until the socket accepted it all or timeout was hit.
-// Returns the number of bytes sent (=size) for success, else
-//  0 for timeout
-// -1 for error
-// -2 if the connection was orderly shutdown
-int FullSend(int fd, const uint8_t* buf, int size, int64_t timeout_ms);
-
-// Sets or gets various settings on the given socket.
-// Returns -1 for error, else 0.
-int set_socket_non_blocking(const char *log_module, int sock);
-int set_socket_priority(const char *log_module, int sock, int prio);
-int set_socket_no_delay(const char *log_module, int sock);
-int set_socket_reuse_addr(const char *log_module, int sock);
-int set_socket_timeout(const char *log_module, int sock, int ms);
-int set_socket_sndbuf_size(const char *log_module, int sock, int size,
-                           int *actual_size);
-int get_socket_sndbuf_size(const char *log_module, int sock, int *actual_size);
-int set_socket_rcvbuf_size(const char *log_module, int sock, int size,
-                           int *actual_size);
-int get_socket_rcvbuf_size(const char *log_module, int sock, int *actual_size);
-int get_socket_port(const char *log_module, int sock, int *port);
 
 }  //  namespace libgep_utils
 

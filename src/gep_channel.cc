@@ -22,7 +22,8 @@
 #include <utility>  // for pair
 
 #include "gep_common.h"  // for GepProtobufMessage
-#include "utils.h"  // for snprintf_printable, FullSend
+#include "socket_interface.h"  // for SocketInterface
+#include "utils.h"  // for snprintf_printable
 
 using namespace libgep_utils;
 
@@ -36,10 +37,12 @@ GepChannel::GepChannel(int id, const std::string &name,
       id_(id),
       socket_(socket),
       len_(0) {
+  socket_interface_ = new SocketInterface();
 }
 
 GepChannel::~GepChannel() {
   Close();
+  delete socket_interface_;
 }
 
 
@@ -48,7 +51,7 @@ int GepChannel::OpenClientSocket() {
 
   // Open socket.
   int new_socket;
-  if ((new_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+  if ((new_socket = socket_interface_->Socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     gep_log(LOG_ERROR,
             "%s(%i):Error-cannot open client socket",
             name_.c_str(), id_);
@@ -125,7 +128,8 @@ int GepChannel::RecvData() {
 
   // read new data from command socket and append to any leftover one
   socket_lock_.lock();
-  int bytes = recv(socket_, buf_ + len_, sizeof(buf_) - len_, 0);
+  int bytes = socket_interface_->Recv(socket_, buf_ + len_,
+                                      sizeof(buf_) - len_, 0);
   socket_lock_.unlock();
 
   // TODO(chema): support EAGAIN and EWOULDBLOCK
@@ -151,7 +155,8 @@ int GepChannel::RecvData() {
 }
 
 int GepChannel::SendData(const char *buf, int bytes) {
-  int sent = FullSend(socket_, (const uint8_t *)buf, bytes, kGepSendTimeoutMs);
+  int sent = socket_interface_->FullSend(socket_, (const uint8_t *)buf, bytes,
+                                         kGepSendTimeoutMs);
   if (sent == 0) {
     gep_log(LOG_DEBUG,
             "%s:send(%i):socket %d was closed by peer",

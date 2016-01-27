@@ -14,6 +14,7 @@
 #include "gep_protocol.h"  // for GepProtocol (ptr only), etc
 
 class GepServer;
+class SocketInterface;
 
 // Class used to manage an array of communication channels where protobuf
 // messages can be sent back and forth.
@@ -22,6 +23,8 @@ class GepChannelArray {
   GepChannelArray(const std::string &name, GepServer *server,
                   GepProtocol *proto, int max_channels,
                   const GepVFT *ops, void *context);
+  virtual ~GepChannelArray();
+
   int OpenServerSocket();
   int AcceptConnection();
   int Stop();
@@ -58,6 +61,12 @@ class GepChannelArray {
   void GetVectorReadFds(int *max_fds, fd_set *read_fds);
   void RecvData(fd_set *read_fds);
 
+  // socket interface
+  SocketInterface *GetSocketInterface() { return socket_interface_; }
+  void SetSocketInterface(SocketInterface *socket_interface) {
+    socket_interface_ = socket_interface;
+  }
+
  private:
   int AddChannel(int socket);
 
@@ -73,6 +82,7 @@ class GepChannelArray {
   // mutex to protect gep_channel_vector_
   std::recursive_mutex gep_channel_vector_lock_;
 
+  SocketInterface *socket_interface_;
   // socket accepting conns for new ctrl channels
   int server_socket_;
 };

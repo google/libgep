@@ -10,6 +10,8 @@
 #include "gep_common.h"  // for GepProtobufMessage
 #include "gep_protocol.h"  // for GepProtocol (ptr only), etc
 
+class SocketInterface;
+
 
 // Class used to manage a communication channel where protobuf messages can
 // be sent back and forth.
@@ -44,6 +46,12 @@ class GepChannel {
   int GetLen() const { return len_; }
   void SetLen(int len) { len_ = len; }
 
+  // socket interface
+  SocketInterface *GetSocketInterface() { return socket_interface_; }
+  void SetSocketInterface(SocketInterface *socket_interface) {
+    socket_interface_ = socket_interface;
+  }
+
   // some constants
   // maximum time to wait for a send
   static const int64_t kGepSendTimeoutMs = 5;
@@ -75,6 +83,7 @@ class GepChannel {
   const GepVFT *ops_;       // VFT for the receiving side (not owned)
   void *context_;           // link to context (not owned)
   int id_;
+  SocketInterface *socket_interface_;  // socket interface
   int socket_;              // command socket used to talk to the other side
   int len_;                 // amount of data currently in buf
   uint8_t buf_[GepProtocol::kMaxMsgLen];  // receive buffer for command data

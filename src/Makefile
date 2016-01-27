@@ -9,6 +9,7 @@ LIBS+=-lprotobuf
 all: $(TARGETS)
 
 libgepserver.a: \
+    socket_interface.o \
     utils.o \
     gep_protocol.o \
     gep_channel.o \
@@ -17,6 +18,7 @@ libgepserver.a: \
 	$(make_lib)
 
 libgepclient.a: \
+    socket_interface.o \
     utils.o \
     gep_protocol.o \
     gep_channel.o \
@@ -45,6 +47,7 @@ gep_client_lite.o: gep_client.cc
 libgepserver-lite.a: CPPFLAGS+=-DGEP_LITE
 
 libgepserver-lite.a: \
+    socket_interface.o \
     utils_lite.o \
     gep_protocol_lite.o \
     gep_channel_lite.o \
@@ -55,6 +58,7 @@ libgepserver-lite.a: \
 libgepclient-lite.a: CPPFLAGS+=-DGEP_LITE
 
 libgepclient-lite.a: \
+    socket_interface.o \
     utils_lite.o \
     gep_protocol_lite.o \
     gep_channel_lite.o \
