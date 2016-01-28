@@ -1,7 +1,7 @@
 TOP:=..
 
 TEST_TARGETS_FULL= \
-		utils_test \
+    utils_test \
     gep_protocol_test \
     gep_channel_test \
     gep_channel_array_test \
