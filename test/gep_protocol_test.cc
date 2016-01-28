@@ -1,12 +1,13 @@
-#include <stdio.h>  // for remove
-#include <string.h>  // for memset
-#include <unistd.h>  // for usleep
+#include "gep_protocol.h"
 
-#include "gep_channel.h"
-#include "gep_test_lib.h"
-#include "test_protocol.h"
+#include <string>  // for string
 
-#include "gtest/gtest.h"
+#include "gep_test_lib.h"  // for GepTest
+#include "gtest/gtest-message.h"  // for Message
+#include "gtest/gtest.h"  // for EXPECT_TRUE, InitGoogleTest, etc
+#include "test_protocol.h"  // for TestProtocol
+#include "utils.h"  // for ProtobufEqual, etc
+
 
 class GepProtocolTest : public GepTest {
  public:

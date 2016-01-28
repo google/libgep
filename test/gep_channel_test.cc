@@ -1,13 +1,16 @@
-#include <stdio.h>  // for remove
-#include <string.h>  // for memset
-#include <unistd.h>  // for usleep
+#include "gep_channel.h"  // for GepChannel
 
-#include "gep_client.h"
-#include "gep_test_lib.h"
-#include "socket_interface.h"
-#include "test_protocol.h"
+#include <stdint.h>  // for int64_t, uint8_t
+#include <unistd.h>  // for ssize_t
 
-#include "gtest/gtest.h"
+#include "gep_channel_array.h"  // for GepChannelArray
+#include "gep_client.h"  // for GepClient
+#include "gep_protocol.h"  // for GepProtocol, etc
+#include "gep_test_lib.h"  // for TestServer, GepTest
+#include "gtest/gtest.h"  // for EXPECT_EQ, TEST_F, etc
+#include "socket_interface.h"  // for SocketInterface
+#include "utils.h"  // for gep_log_set_level, etc
+
 
 class FailingSocketInterface: public SocketInterface {
  public:

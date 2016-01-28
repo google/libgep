@@ -1,12 +1,16 @@
-#include <stdio.h>  // for remove
-#include <string.h>  // for memset
-#include <unistd.h>  // for usleep
-
 #include "gep_client.h"
-#include "gep_test_lib.h"
-#include "test_protocol.h"
 
-#include "gtest/gtest.h"
+#include <string.h>  // for memcpy
+#include <unistd.h>  // for write
+#include <string>  // for string
+
+#include "gep_channel.h"  // for GepChannel
+#include "gep_channel_array.h"  // for GepChannelArray
+#include "gep_client.h"  // for GepClient
+#include "gep_test_lib.h"  // for TestServer, etc
+#include "gtest/gtest.h"  // for EXPECT_EQ, ASSERT_TRUE, etc
+#include "utils.h"  // for SET_UINT32
+
 
 class GepClientTest : public GepTest {
 };
