@@ -55,6 +55,7 @@ class GepChannelArray {
   // accessors
   int GetVectorSize();
   int GetVectorSocket(int i);
+  int GetClientId(int i);
 
   // network management
   int GetServerSocket() const { return server_socket_; }

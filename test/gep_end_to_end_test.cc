@@ -43,6 +43,15 @@ TEST_F(GepEndToEndTest, BasicEndToEnd) {
   WaitForSync(2);
 }
 
+TEST_F(GepEndToEndTest, ExplicitEndToEnd) {
+  // push message in the server to an explicit client
+  GepChannelArray *gca = server_->GetGepChannelArray();
+  int id = gca->GetClientId(0);
+  gca->SendMessage(command3_, id);
+
+  WaitForSync(1);
+}
+
 TEST_F(GepEndToEndTest, CallbackFailure) {
   // push message in the client
   GepChannel *gc = client_->GetGepChannel();

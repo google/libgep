@@ -197,6 +197,11 @@ int GepChannelArray::GetVectorSocket(int i) {
   return gep_channel_vector_[i]->GetSocket();
 }
 
+int GepChannelArray::GetClientId(int i) {
+  std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
+  return gep_channel_vector_[i]->GetId();
+}
+
 void GepChannelArray::GetVectorReadFds(int *max_fds, fd_set *read_fds) {
   std::lock_guard<std::recursive_mutex> lock(gep_channel_vector_lock_);
   for (const auto &gep_channel_ptr : gep_channel_vector_) {
