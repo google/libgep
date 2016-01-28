@@ -250,7 +250,6 @@ int GepChannel::SendString(uint32_t tag, const std::string &s) {
 
 GepChannel::Result GepChannel::RecvTLV(uint32_t tag, int value_len,
                                        const uint8_t *value) {
-  int ret = 0;
   char tag_string[kMaxTagString];
   proto_->TagString(tag, tag_string, kMaxTagString);
   auto iter = ops_->find(tag);
@@ -270,11 +269,11 @@ GepChannel::Result GepChannel::RecvTLV(uint32_t tag, int value_len,
       delete msg;
       return CMD_ERROR;
     }
-    ret = iter->second(*msg, this);
-    if (ret < 0) {
+    bool ret = iter->second(*msg, this);
+    if (!ret) {
       gep_log(LOG_WARNING,
-              "%s:recv(%i):callback error [%s]: %i",
-              name_.c_str(), id_, tag_string, ret);
+              "%s:recv(%i):callback error [%s]",
+              name_.c_str(), id_, tag_string);
     }
     delete msg;
   } else {
