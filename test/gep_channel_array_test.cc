@@ -97,3 +97,8 @@ TEST_F(GepChannelArrayTest, FailingSendSocket) {
   server_->Start();
   gca->SetSocketInterface(old_socket_interface);
 }
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
