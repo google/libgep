@@ -75,14 +75,15 @@ class GepTest : public ::testing::Test {
   // maximum wait for any busy loop
   static int64_t kWaitTimeoutUsecs;
 
-  // messages for testing
-  Command1 command1_;
-  Command2 command2_;
-  Command3 command3_;
-  Command4 command4_;
-  ControlMessage control_message_ping_;
-  ControlMessage control_message_pong_;
-  ControlMessage control_message_get_lock_;
+  // messages for testing (add copy for receiver to avoid race conditions
+  // on accessing to the same message)
+  Command1 command1_, rcommand1_;
+  Command2 command2_, rcommand2_;
+  Command3 command3_, rcommand3_;
+  Command4 command4_, rcommand4_;
+  ControlMessage control_message_ping_, rcontrol_message_ping_;
+  ControlMessage control_message_pong_, rcontrol_message_pong_;
+  ControlMessage control_message_get_lock_, rcontrol_message_get_lock_;
 
   // text version
   std::string command1_str_;

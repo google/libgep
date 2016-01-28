@@ -39,39 +39,39 @@ void GepTest::DoSync() {
 
 bool GepTest::Recv(const Command1 &msg, int id) {
   // check the msg received in the client
-  EXPECT_TRUE(ProtobufEqual(command1_, msg));
+  EXPECT_TRUE(ProtobufEqual(rcommand1_, msg));
   DoSync();
   return true;
 }
 
 bool GepTest::Recv(const Command2 &msg, int id) {
   // check the msg received in the client
-  EXPECT_TRUE(ProtobufEqual(command2_, msg));
+  EXPECT_TRUE(ProtobufEqual(rcommand2_, msg));
   DoSync();
   return false;
 }
 
 bool GepTest::Recv(const Command3 &msg, int id) {
   // check the msg received in the client
-  EXPECT_TRUE(ProtobufEqual(command3_, msg));
+  EXPECT_TRUE(ProtobufEqual(rcommand3_, msg));
   DoSync();
   return true;
 }
 
 bool GepTest::Recv(const Command4 &msg, int id) {
   // check the msg received in the client
-  EXPECT_TRUE(ProtobufEqual(command4_, msg));
+  EXPECT_TRUE(ProtobufEqual(rcommand4_, msg));
   DoSync();
   return true;
 }
 
 bool GepTest::Recv(const ControlMessage &msg, int id) {
   // check the msg received in the server
-  if (ProtobufEqual(control_message_ping_, msg)) {
+  if (ProtobufEqual(rcontrol_message_ping_, msg)) {
     // send pong message
     GepChannelArray *gca = server_->GetGepChannelArray();
-    gca->SendMessage(control_message_pong_);
-  } else if (ProtobufEqual(control_message_get_lock_, msg)) {
+    gca->SendMessage(rcontrol_message_pong_);
+  } else if (ProtobufEqual(rcontrol_message_get_lock_, msg)) {
     // let the main thread know the server thread is in the callback
     stage1_ = true;
     // wait until the server thread allows us to proceed
@@ -117,6 +117,15 @@ void GepTest::InitData() {
   control_message_ping_.set_command(ControlMessage::COMMAND_PING);
   control_message_pong_.set_command(ControlMessage::COMMAND_PONG);
   control_message_get_lock_.set_command(ControlMessage::COMMAND_GET_LOCK);
+
+  // copy them
+  rcommand1_ = command1_;
+  rcommand2_ = command2_;
+  rcommand3_ = command3_;
+  rcommand4_ = command4_;
+  rcontrol_message_ping_ = control_message_ping_;
+  rcontrol_message_pong_ = control_message_pong_;
+  rcontrol_message_get_lock_ = control_message_get_lock_;
 
   // add text version
   TestProtocol proto(0);
