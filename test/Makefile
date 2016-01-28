@@ -3,6 +3,7 @@ TOP:=..
 TEST_TARGETS_FULL= \
     gep_protocol_test \
     gep_channel_test \
+    gep_channel_array_test \
     gep_client_test \
     gep_server_test \
     gep_end_to_end_test
@@ -10,6 +11,7 @@ TEST_TARGETS_FULL= \
 TEST_TARGETS_LITE= \
     gep_protocol_test_lite \
     gep_channel_test_lite \
+    gep_channel_array_test_lite \
     gep_client_test_lite \
     gep_server_test_lite \
     gep_end_to_end_test_lite
