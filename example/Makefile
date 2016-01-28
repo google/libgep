@@ -4,7 +4,7 @@ TOP:=..
 TARGETS= client server client_lite server_lite
 
 # add the local gep libraries info before the hostdir ones get added
-CPPFLAGS+=-I../include
+CPPFLAGS+=-I../include -I../src $(PROTO_CPPFLAGS)
 LDFLAGS+=-L../src
 
 include ../rules.mk
@@ -20,12 +20,9 @@ all_for_real_this_time: $(TARGETS)
 	$(MAKE) sgp.pb.h
 	$(MAKE) sgp_lite.pb.h
 
-HOST_PROTOC ?= $(HOSTDIR)/usr/bin/protoc
-PROTOFLAGS=--cpp_out=. -I.
-
 sgp.pb.h: sgp.proto
 	echo "Building sgp.pb.h"
-	$(HOST_PROTOC) $(PROTOFLAGS) $<
+	$(HOST_PROTOC) $(PROTOC_FLAGS) $<
 
 client: \
     sgp.pb.t.o \
@@ -37,15 +34,15 @@ server: \
     sgp_protocol.t.o \
     sgp_server.t.o
 
-client : LIBS+=-lprotobuf -L../src/ -lgepclient
+client : LIBS+=$(PROTOFULL_LDFLAGS) -L../src/ -lgepclient
 
-server : LIBS+=-lprotobuf -L../src/ -lgepserver
+server : LIBS+=$(PROTOFULL_LDFLAGS) -L../src/ -lgepserver
 
 
 # lite targets
 sgp_lite.pb.h: sgp_lite.proto
 	echo "Building sgp_lite.pb.h"
-	$(HOST_PROTOC) $(PROTOFLAGS) $<
+	$(HOST_PROTOC) $(PROTOC_FLAGS) $<
 
 sgp_protocol_lite.o: sgp_protocol.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DGEP_LITE -c -o $@ $<
@@ -78,9 +75,9 @@ server_lite: \
     sgp_protocol_lite.o \
     sgp_server_lite.o
 
-client_lite : LIBS+=-lprotobuf-lite -L../src/ -lgepclient-lite
+client_lite : LIBS+=$(PROTOLITE_LDFLAGS) -L../src/ -lgepclient-lite
 
-server_lite : LIBS+=-lprotobuf-lite -L../src/ -lgepserver-lite
+server_lite : LIBS+=$(PROTOLITE_LDFLAGS) -L../src/ -lgepserver-lite
 
 runtests : runtests-full runtests-lite
 

@@ -53,6 +53,37 @@ Note that both the client and server stub classes, when started, will
 create a thread in charge of receiving messages and running the callback
 functions.
 
+In order to test the current code, you need a modern version of protobuf
+(This will change once proto3 is officially released).
+
+The following code installs it in a private, temporary directory.
+
+```bash
+git clone https://github.com/google/protobuf
+cd protobuf/
+./autogen.sh
+PROTOBUF_PREFIX=/tmp/usr
+./configure --prefix=$PROTOBUF_PREFIX
+make
+make install
+cd ..
+```
+
+Once you have installed it, try the libgep code:
+
+```bash
+git clone https://github.com/google/libgep
+cd libgep/
+PROTOBUF_PREFIX=/tmp/usr make
+PROTOBUF_PREFIX=/tmp/usr make test
+```
+
+`make` will create 4 libraries, namely `libgepclient.a`,
+`libgepclient-lite.a`, `libgepserver.a`, and
+`libgepserver-lite.a`. You also need the .h headers in
+the `include/` directory.
+
+
 
 GEP Operation: Protocol Definition
 ----------------------------------

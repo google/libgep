@@ -22,7 +22,7 @@ TEST_TARGETS_LITE= \
 TEST_TARGETS= $(TEST_TARGETS_FULL) $(TEST_TARGETS_LITE)
 
 # add the local gep libraries info before the hostdir ones get added
-CPPFLAGS+=-I../include -I../src
+CPPFLAGS+=-I../include -I../src $(PROTO_CPPFLAGS)
 LDFLAGS+=-L../src
 
 include ../rules.mk
@@ -38,22 +38,19 @@ all_for_real_this_time: $(TARGETS)
 	$(MAKE) test.pb.h
 	$(MAKE) test_lite.pb.h
 
-HOST_PROTOC ?= $(HOSTDIR)/usr/bin/protoc
-PROTOFLAGS=--cpp_out=. -I.
-
 test.pb.h: test.proto
 	echo "Building test.pb.h"
-	$(HOST_PROTOC) $(PROTOFLAGS) $<
+	$(HOST_PROTOC) $(PROTOC_FLAGS) $<
 
 test_lite.pb.h: test_lite.proto
 	echo "Building test_lite.pb.h"
-	$(HOST_PROTOC) $(PROTOFLAGS) $<
+	$(HOST_PROTOC) $(PROTOC_FLAGS) $<
 
 $(TEST_TARGETS_FULL) : \
-    LIBS+=-lprotobuf -lgtest -L../src -lgepserver -lgepclient
+    LIBS+=$(PROTOFULL_LDFLAGS) -lgtest -L../src -lgepserver -lgepclient
 
 $(TEST_TARGETS_LITE) : \
-    LIBS+=-lprotobuf-lite -lgtest -L../src -lgepserver-lite -lgepclient-lite
+    LIBS+=$(PROTOLITE_LDFLAGS) -lgtest -L../src -lgepserver-lite -lgepclient-lite
 
 $(TEST_TARGETS_FULL) : \
     test.pb.t.o \

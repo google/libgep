@@ -278,3 +278,18 @@ define make_lib
 	mv $@.new $@
 endef
 
+# protobuf defines
+ifneq ($(PROTOBUF_PREFIX),)
+HOST_PROTOC ?= $(PROTOBUF_PREFIX)/bin/protoc
+else
+HOSTDIR_MAIN = $(HOSTDIR)/usr
+HOST_PROTOC ?= $(HOSTDIR_MAIN)/bin/protoc
+endif
+
+
+PROTOC_FLAGS=--cpp_out=. -I.
+
+PROTO_CPPFLAGS=-I. -I$(PROTOBUF_PREFIX)/include
+PROTOFULL_LDFLAGS=-L$(PROTOBUF_PREFIX)/lib -lprotobuf
+PROTOLITE_LDFLAGS=-L$(PROTOBUF_PREFIX)/lib -lprotobuf-lite
+

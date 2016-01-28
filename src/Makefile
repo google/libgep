@@ -2,11 +2,10 @@
 
 TOP:=..
 TARGETS=libgepserver.a libgepclient.a libgepserver-lite.a libgepclient-lite.a
-CPPFLAGS+=-I. -I.. -I../include
+CPPFLAGS+=-I. -I.. -I../include $(PROTO_CPPFLAGS)
+LIBS+=$(PROTOFULL_LDFLAGS)
 
 include ../rules.mk
-
-LIBS+=-lprotobuf
 
 all: $(TARGETS)
 
