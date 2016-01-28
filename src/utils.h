@@ -142,6 +142,9 @@ char *get_peer_ip(int sock, char *buf, int size);
 // See http://stackoverflow.com/a/28295939.
 int nice_snprintf(char *str, size_t size, const char *format, ...);
 
+// snprintf's <len> bytes in hex
+int snprintf_hex(char *buf, int bufsize, const uint8_t *data, int len);
+
 // Prints a printable string into a buffer.
 int snprintf_printable(char *buf, int bufsize, const uint8_t *data, int len);
 
