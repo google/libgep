@@ -11,6 +11,7 @@
 
 #include "sgp_server.h"
 
+#include <atomic>
 #include <fcntl.h>
 #include <getopt.h>
 #include <limits.h>
@@ -46,7 +47,7 @@ class MyServer: public SGPServer {
   int cnt3_;
   int cnt4_;
 
-  bool seen_client_;
+  std::atomic<bool> seen_client_;
 };
 
 bool MyServer::Recv(const Command1 &msg, int id) {

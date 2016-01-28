@@ -11,6 +11,7 @@
 
 #include "sgp_client.h"
 
+#include <atomic>
 #include <fcntl.h>
 #include <getopt.h>
 #include <limits.h>
@@ -40,10 +41,14 @@ class MyClient: public SGPClient {
   bool Recv(const Command3 &msg) override;
   bool Recv(const Command4 &msg) override;
 
-  int cnt1_;
-  int cnt2_;
-  int cnt3_;
-  int cnt4_;
+  std::atomic<int> cnt1_;
+  std::atomic<int> cnt2_;
+  std::atomic<int> cnt3_;
+  std::atomic<int> cnt4_;
+  int GetCnt1() { return cnt1_; }
+  int GetCnt2() { return cnt2_; }
+  int GetCnt3() { return cnt3_; }
+  int GetCnt4() { return cnt4_; }
 };
 
 bool MyClient::Recv(const Command1 &msg) {
@@ -255,8 +260,8 @@ int main(int argc, char **argv) {
   // give some time for all both sides to finish
   usleep(3000000);
 
-  printf("results: %i %i %i %i\n", my_client->cnt1_, my_client->cnt2_,
-      my_client->cnt3_, my_client->cnt4_);
+  printf("results: %i %i %i %i\n", my_client->GetCnt1(), my_client->GetCnt2(),
+      my_client->GetCnt3(), my_client->GetCnt4());
 
   my_client->Stop();
 
