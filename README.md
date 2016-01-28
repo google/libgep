@@ -219,6 +219,9 @@ main difference is that the Recv() callbacks can have an extra parameter
     Figure 5: Implementation of SGPServer.
 
 
+Both client and server can use ``Send(const Message& msg)'' to send a
+message to the other side.
+
 
 GEP Implementation Details
 --------------------------

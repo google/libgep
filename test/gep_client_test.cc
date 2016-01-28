@@ -56,8 +56,7 @@ TEST_F(GepClientTest, ClientReconnectOnHugeMessageData) {
   // ensure the server is seeing the client
   ASSERT_TRUE(WaitForTrue([=]() {return server_->GetNumClients() == 1;}));
   // push message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
 
   WaitForSync(1);
 }
@@ -93,8 +92,7 @@ TEST_F(GepClientTest, ClientDropUnsupportedMessage) {
   // push a message in the client
   gc->SendMessage(command1_);
   // push another message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
   // ensure we did not reconnect
   EXPECT_EQ(0, client_->GetReconnectCount());
   WaitForSync(2);
@@ -115,8 +113,7 @@ TEST_F(GepClientTest, ClientDropUnsupportedMagicMessage) {
   // push a message in the client
   gc->SendMessage(command1_);
   // push another message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
   WaitForSync(1);
 }
 
@@ -152,8 +149,7 @@ TEST_F(GepClientTest, ClientSupportsFragmentation) {
   gc->SendMessage(command1_);
 
   // push message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
 
   WaitForSync(total + 2);
 }

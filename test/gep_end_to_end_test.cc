@@ -33,29 +33,25 @@ class GepEndToEndTest : public GepTest {
 
 TEST_F(GepEndToEndTest, BasicEndToEnd) {
   // push message in the client
-  GepChannel *gc = client_->GetGepChannel();
-  gc->SendMessage(command1_);
+  client_->Send(command1_);
 
   // push message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
 
   WaitForSync(2);
 }
 
 TEST_F(GepEndToEndTest, ExplicitEndToEnd) {
   // push message in the server to an explicit client
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  int id = gca->GetClientId(0);
-  gca->SendMessage(command3_, id);
+  int id = server_->GetGepChannelArray()->GetClientId(0);
+  server_->Send(command3_, id);
 
   WaitForSync(1);
 }
 
 TEST_F(GepEndToEndTest, CallbackFailure) {
   // push message in the client
-  GepChannel *gc = client_->GetGepChannel();
-  gc->SendMessage(command2_);
+  client_->Send(command2_);
 
   WaitForSync(1);
 }
@@ -66,14 +62,12 @@ void GepEndToEndTest::SenderPusherThread() {
     std::this_thread::yield();
 
   // push message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
 }
 
 TEST_F(GepEndToEndTest, ParallelEndToEnd) {
   // push message in the client
-  GepChannel *gc = client_->GetGepChannel();
-  gc->SendMessage(command1_);
+  client_->Send(command1_);
 
   // start the sender pusher threads
   ready_ = false;
@@ -97,12 +91,10 @@ TEST_F(GepEndToEndTest, EndToEndDifferentMagic) {
   sproto_->SetMagic(new_magic);
 
   // push message in the client
-  GepChannel *gc = client_->GetGepChannel();
-  gc->SendMessage(command1_);
+  client_->Send(command1_);
 
   // push message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
 
   // ensure we did not reconnect
   EXPECT_EQ(0, client_->GetReconnectCount());
@@ -111,13 +103,11 @@ TEST_F(GepEndToEndTest, EndToEndDifferentMagic) {
 
 TEST_F(GepEndToEndTest, MultipleMessagesAreAllReceived) {
   // push 2x messages in the client
-  GepChannel *gc = client_->GetGepChannel();
-  gc->SendMessage(command1_);
-  gc->SendMessage(command1_);
+  client_->Send(command1_);
+  client_->Send(command1_);
 
   // push message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
 
   // note that WaitForSync() will wait for 3 messages or fail
   WaitForSync(3);
@@ -125,8 +115,7 @@ TEST_F(GepEndToEndTest, MultipleMessagesAreAllReceived) {
 
 TEST_F(GepEndToEndTest, CallbackDeadlock) {
   // push message in the client
-  GepChannel *gc = client_->GetGepChannel();
-  gc->SendMessage(control_message_ping_);
+  client_->Send(control_message_ping_);
 
   WaitForSync(2);
 }
@@ -143,8 +132,7 @@ void GepEndToEndTest::SenderLockThread() {
   stage2_ = true;
 
   // push any message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
 }
 
 TEST_F(GepEndToEndTest, CallbackCrossed) {
@@ -153,8 +141,7 @@ TEST_F(GepEndToEndTest, CallbackCrossed) {
   stage2_ = false;
 
   // push message in the client
-  GepChannel *gc = client_->GetGepChannel();
-  gc->SendMessage(control_message_get_lock_);
+  client_->Send(control_message_get_lock_);
 
   // start the sender thread
   auto th = std::thread(&GepEndToEndTest::SenderLockThread, this);
@@ -170,12 +157,10 @@ TEST_F(GepEndToEndTest, EndToEndBinaryProtocol) {
   sproto_->SetMode(GepProtocol::MODE_BINARY);
 
   // push message in the client
-  GepChannel *gc = client_->GetGepChannel();
-  gc->SendMessage(command1_);
+  client_->Send(command1_);
 
   // push message in the server
-  GepChannelArray *gca = server_->GetGepChannelArray();
-  gca->SendMessage(command3_);
+  server_->Send(command3_);
 
   // ensure we did not reconnect
   EXPECT_EQ(0, client_->GetReconnectCount());
