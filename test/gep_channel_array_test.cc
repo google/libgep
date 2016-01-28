@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 #include "gep_channel_array.h"
 
 #include <unistd.h>  // for socklen_t, ssize_t

@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP protocol: server's array of GepChannel.
 
 #ifndef _GNU_SOURCE

@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP Protocol: GEPChannel implementation.
 
 #ifndef _GNU_SOURCE

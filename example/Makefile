@@ -1,3 +1,5 @@
+# Copyright Google Inc. Apache 2.0.
+
 TOP:=..
 TARGETS= client server client_lite server_lite
 

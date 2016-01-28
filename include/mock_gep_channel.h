@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP Protocol: GEPChannel.
 
 #ifndef _MOCK_GEP_CHANNEL_H_

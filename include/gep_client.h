@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP protocol: client side.
 
 #ifndef _GEP_CLIENT_H_

@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP/SGP protocol: server side.
 
 #ifndef _GNU_SOURCE

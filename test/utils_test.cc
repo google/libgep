@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 #include "utils.h"
 
 #include <stdint.h>  // for uint8_t, int64_t

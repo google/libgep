@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP (Generic Event Protobuf aka Generic Eh... Protobuf) protocol
 
 #ifndef _GEP_PROTOCOL_H_

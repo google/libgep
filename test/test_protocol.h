@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP/Test protocol
 //
 // Test is a GEP-based protocol.

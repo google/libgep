@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 #include "gep_protocol.h"
 
 #include <string>  // for string

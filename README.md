@@ -1,8 +1,6 @@
 GEP: A Generic, Protobuf-Based Client-Server Protocol
 =====================================================
 
-\[This document lives at go/gfiber.gep\]
-
 
 Introduction
 ------------
@@ -43,27 +41,12 @@ extremely simple, and very easy to serialize (e.g. dump state in the
 logs in a systematic way).
 
 
-GEP Usage: Google Fiber
------------------------
-
-The implementation for the GEP protocol is in the
-[gfiber repo](https://gfiber-internal.googlesource.com/vendor/google/libgep).
-The GEP protocol is the basis for the implementation of:
-
-(1) the [Mints protocol](https://go/gfiber.mints), which is used to
-allow communication between sagesrv and the fiber-ads CPE ads manager.
-(2) a protocol for sending protobuf messages (user configuration requests)
-between SageTV and adsmgr (GEP/SageTV), and
-(3) the MCNMP API at gfiber's miniclient.
-
-
-
 GEP Manual
 ----------
 
 The best way to learn how to use GEP is by checking the provided example,
-called SGP. Check the [SGP Documentation](example/README.md). Note that
-all the example/sgp\_\* files are mostly boilerplate, so it should be
+called SGP. Check the [SGP Documentation](example). Note that
+all the `example/sgp_*` files are mostly boilerplate, so it should be
 easy to adapt them for your own protocol.
 
 Note that both the client and server stub classes, when started, will
@@ -219,7 +202,7 @@ main difference is that the Recv() callbacks can have an extra parameter
     Figure 5: Implementation of SGPServer.
 
 
-Both client and server can use ``Send(const Message& msg)'' to send a
+Both client and server can use `Send(const Message& msg)` to send a
 message to the other side.
 
 
@@ -273,15 +256,16 @@ a very simple wire format:
 
 Where:
 
-  - gep\_id: unique GEP identificator [4 bytes]. It must consist of `gepp`
+  - gep\_id: unique GEP identificator [4 bytes]. Default is `gepp`
     (0x67657070).
   - tag: tag identifying the message being sent [4 bytes]. The tags are
     those used to defined the protocol.
   - value\_len: length of the message [4 bytes]. This is the length of the
     packet (minus the 12-byte header).
-  - message: a serialized protobuf message [value\_len bytes]. We are
-    currently using a text protobuf. This allows easy debugging of wire
-    packets.
+  - message: a serialized protobuf message [value\_len bytes]. Default
+    is to use a text protobuf, which allows easy debugging by reading
+    the packets in the wire. Binary protobufs can be selected too (and
+    are the default in the lite mode).
 
 
 Protobuf-Lite Support
@@ -290,20 +274,22 @@ Protobuf-Lite Support
 GEP also provides a protobuf-lite version. Protobuf-lite is a light
 version of protobuf (the libraries are 1/10th the size of vanilla
 protobuf) in exchange of support for neither descriptors nor reflection.
+There is no support for text protobufs in lite mode, so the protocol
+will use binary ones in the wire.
 
 In order to use the lite version of GEP, you need to:
 
 1. ensure you define the GEP lite flag before you include any of the
-   GEP header files (GEP_LITE).
-2. link with the lite version of the libraries (libgepclient-lite.a and
-   libgepserver-lite.a)
+   GEP header files (`GEP_LITE`).
+2. link with the lite version of the libraries (`libgepclient-lite.a` and
+   `libgepserver-lite.a`)
 
 
 Future Work
 -----------
 
 As mentioned before, currently GEP-based protocols need to adapt some
-amount of boilerplate (see the example/ directory) for each new protocol.
+amount of boilerplate (see the `example/` directory) for each new protocol.
 Typically, the user needs to copy the protocol, client, and server stubs
 from an example, and fill them with her data.
 

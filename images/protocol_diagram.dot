@@ -3,7 +3,7 @@ digraph G {
 	ClientAPI [shape=box, label="Send\(const Protobuf_1 &msg)\n...\nSend\(const Protobuf_n-1 &msg)\nRecv\(const Protobuf_n &msg)\n...\nRecv\(const Protobuf_m &msg)"];
 	ClientAPI -> client;
 	client -> ClientAPI;
-	client -> server [label="protobuf messages"];
+	client -> server [label="protobuf\nmessages"];
 	server -> client;
 	ServerAPI [shape=box, label="Send\(const Protobuf_n &msg[, int id])\n...\nSend\(const Protobuf_m &msg[, int id])\nRecv\(const Protobuf_1 &msg, int id)\n...\nRecv\(const Protobuf_n-1 &msg, int id)"];
 	ServerAPI -> server;

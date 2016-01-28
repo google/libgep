@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 #ifndef _TEST_GEP_TEST_LIB_H_
 #define _TEST_GEP_TEST_LIB_H_
 

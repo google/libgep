@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // simple client
 
 #ifndef _GNU_SOURCE

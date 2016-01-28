@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // SGP protocol: client side.
 
 #ifndef _SGP_CLIENT_H_

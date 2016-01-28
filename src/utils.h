@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 #ifndef _UTILS_H_
 #define _UTILS_H_
 

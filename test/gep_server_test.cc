@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 #include <stdio.h>  // for remove
 #include <string.h>  // for memset
 #include <unistd.h>  // for usleep

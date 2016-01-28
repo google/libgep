@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP protocol: server implementation.
 
 #ifndef _GNU_SOURCE

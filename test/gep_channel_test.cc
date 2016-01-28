@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 #include "gep_channel.h"  // for GepChannel
 
 #include <stdint.h>  // for int64_t, uint8_t

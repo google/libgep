@@ -1,3 +1,5 @@
+# Copyright Google Inc. Apache 2.0.
+
 TOP:=$(shell /bin/pwd)/$(TOP)
 
 default: all

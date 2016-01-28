@@ -1,3 +1,5 @@
+# Copyright Google Inc. Apache 2.0.
+
 TOP:=..
 TARGETS=libgepserver.a libgepclient.a libgepserver-lite.a libgepclient-lite.a
 CPPFLAGS+=-I. -I.. -I../include

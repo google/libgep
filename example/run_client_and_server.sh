@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Copyright Google Inc. Apache 2.0.
+
 # ensure 2 arguments
 if [[ "$#" -lt "2" ]]; then
   echo "error: need 1 parameters ($0 <client> <server>)"

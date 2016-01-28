@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 #ifndef _SOCKET_INTERFACE_H_
 #define _SOCKET_INTERFACE_H_
 

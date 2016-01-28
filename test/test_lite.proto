@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // A protocol buffer representation of an example API.
 
 syntax = "proto2";

@@ -1,3 +1,5 @@
+// Copyright Google Inc. Apache 2.0.
+
 // GEP protocol: utils.
 
 #ifndef _GEP_UTILS_H_
