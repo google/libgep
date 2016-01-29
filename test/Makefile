@@ -63,6 +63,7 @@ $(TEST_TARGETS_LITE) : \
     test_protocol.l.o \
     gep_test_lib.l.o
 
+# Pattern rules for *_lite targets.
 %.l.o: %.cc
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DGEP_LITE -c -o $@ $<
 
