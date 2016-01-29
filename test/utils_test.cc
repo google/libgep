@@ -160,3 +160,8 @@ TEST(UtilTest, snprintf_date) {
     EXPECT_STREQ(test_item.expected_out, tmp) << test_item.line;
   }
 }
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
