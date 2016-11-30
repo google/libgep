@@ -11,6 +11,7 @@ all: $(TARGETS)
 
 libgepserver.a: \
     socket_interface.o \
+    time_manager.o \
     utils.o \
     gep_protocol.o \
     gep_channel.o \
@@ -20,6 +21,7 @@ libgepserver.a: \
 
 libgepclient.a: \
     socket_interface.o \
+    time_manager.o \
     utils.o \
     gep_protocol.o \
     gep_channel.o \
@@ -49,6 +51,7 @@ libgepserver-lite.a: CPPFLAGS+=-DGEP_LITE
 
 libgepserver-lite.a: \
     socket_interface.o \
+    time_manager.o \
     utils_lite.o \
     gep_protocol_lite.o \
     gep_channel_lite.o \
@@ -60,6 +63,7 @@ libgepclient-lite.a: CPPFLAGS+=-DGEP_LITE
 
 libgepclient-lite.a: \
     socket_interface.o \
+    time_manager.o \
     utils_lite.o \
     gep_protocol_lite.o \
     gep_channel_lite.o \

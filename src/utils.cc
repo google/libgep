@@ -85,16 +85,6 @@ int64_t GetUnixTimeUsec() {
   return ((int64_t) tv.tv_sec * kUsecsPerSec) + tv.tv_usec;
 }
 
-static inline uint64_t get_now_ns() {
-  struct timespec tv;
-  clock_gettime(CLOCK_MONOTONIC, &tv);
-  return tv.tv_sec * kNsecsPerSec + tv.tv_nsec;
-}
-
-uint64_t ms_elapse(uint64_t start_time_ms) {
-  return (get_now_ns() - start_time_ms * kNsecsPerMsec) / kNsecsPerMsec;
-}
-
 int nice_snprintf(char *str, size_t size, const char *format, ...) {
   va_list ap;
   int bi;

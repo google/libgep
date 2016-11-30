@@ -123,8 +123,6 @@ static inline struct timeval usecs_to_timeval(int64_t usecs) {
   return out;
 }
 
-uint64_t ms_elapse(uint64_t start_time_ms);
-
 // Returns the current timestamp as an int64_t (microseconds since unix epoch).
 int64_t GetUnixTimeUsec();
 

@@ -11,11 +11,14 @@
 #include <memory>  // for unique_ptr
 
 #include "raw_socket_interface.h"
+#include "time_manager.h"
+
 
 class SocketInterface {
  public:
   SocketInterface() {
     raw_socket_interface_.reset(new RawSocketInterface());
+    time_manager_.reset(new TimeManager());
   }
   virtual ~SocketInterface() = default;
 
@@ -59,6 +62,7 @@ class SocketInterface {
   friend class TestableSocketInterface;
 
   std::unique_ptr<RawSocketInterface> raw_socket_interface_;
+  std::unique_ptr<TimeManager> time_manager_;
 };
 
 #endif  // _SOCKET_INTERFACE_H_

@@ -29,7 +29,7 @@ using namespace libgep_utils;
 
 int SocketInterface::FullSend(int fd, const uint8_t* buf, int size,
                               int64_t timeout_ms) {
-  int64_t started_ms = ms_elapse(0);
+  int64_t started_ms = time_manager_->ms_elapse(0);
   int total_sent = 0;
 
   while (total_sent < size) {
@@ -47,7 +47,7 @@ int SocketInterface::FullSend(int fd, const uint8_t* buf, int size,
       return -1;
 
     // EAGAIN/EWOULDBLOCK, use select to sleep until the socket has space
-    int64_t sleeptime_ms = timeout_ms - ms_elapse(started_ms);
+    int64_t sleeptime_ms = timeout_ms - time_manager_->ms_elapse(started_ms);
     if (sleeptime_ms < 0)
       return 0;  // timed out
 
