@@ -9,7 +9,8 @@ TEST_TARGETS_FULL= \
     gep_channel_array_test \
     gep_client_test \
     gep_server_test \
-    gep_end_to_end_test
+    gep_end_to_end_test \
+    socket_interface_test
 
 TEST_TARGETS_LITE= \
     gep_protocol_test_lite \
@@ -51,6 +52,8 @@ $(TEST_TARGETS_FULL) : \
 
 $(TEST_TARGETS_LITE) : \
     LIBS+=$(PROTOLITE_LDFLAGS) -lgtest -L../src -lgepserver-lite -lgepclient-lite
+
+socket_interface_test: LIBS+=-lgmock
 
 $(TEST_TARGETS_FULL) : \
     test.pb.t.o \

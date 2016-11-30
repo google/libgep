@@ -18,10 +18,11 @@
 #include <stdint.h>  // for int64_t, uint8_t
 #include <stdio.h>  // for NULL
 #include <string.h>  // for memset
-#include <sys/select.h>  // for select, FD_SET, FD_ZERO, etc
-#include <sys/socket.h>  // for setsockopt, SOL_SOCKET, etc
+#include <sys/select.h>  // for FD_SET, FD_ZERO, etc
+#include <sys/socket.h>  // for SOL_SOCKET, etc
 #include <sys/time.h>  // for timeval
 
+#include "raw_socket_interface.h"
 #include "utils.h"
 
 using namespace libgep_utils;
@@ -32,7 +33,8 @@ int SocketInterface::FullSend(int fd, const uint8_t* buf, int size,
   int total_sent = 0;
 
   while (total_sent < size) {
-    int count = Send(fd, buf + total_sent, size - total_sent, MSG_DONTWAIT);
+    int count = raw_socket_interface_->Send(fd, buf + total_sent,
+                                            size - total_sent, MSG_DONTWAIT);
     if (count > 0) {
       total_sent += count;
       continue;
@@ -57,7 +59,8 @@ int SocketInterface::FullSend(int fd, const uint8_t* buf, int size,
     FD_ZERO(&write_fds);
     FD_SET(fd, &write_fds);
 
-    int num = Select(fd + 1, NULL, &write_fds, NULL, &tv);
+    int num = raw_socket_interface_->Select(fd + 1, NULL, &write_fds, NULL,
+                                            &tv);
     if (num == 0)
       return 0;  // timed out
   }
@@ -85,7 +88,8 @@ int SocketInterface::SetNonBlocking(const char *log_module, int sock) {
 int SocketInterface::SetPriority(const char *log_module, int sock, int prio) {
   if (!log_module) log_module = "unknown";
 
-  if (setsockopt(sock, SOL_SOCKET, SO_PRIORITY, &prio, sizeof(prio)) == -1) {
+  if (raw_socket_interface_->SetSockOpt(sock, SOL_SOCKET, SO_PRIORITY,
+                                        &prio, sizeof(prio)) == -1) {
     gep_perror(errno, "%s():Error-Cannot set SO_PRIORITY to %d on socket "
                  "(%d)", log_module, prio, sock);
     return -1;
@@ -97,7 +101,8 @@ int SocketInterface::SetNoDelay(const char *log_module, int sock) {
   if (!log_module) log_module = "unknown";
 
   int flags = 1;
-  if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &flags, sizeof(flags)) < 0) {
+  if (raw_socket_interface_->SetSockOpt(sock, IPPROTO_TCP, TCP_NODELAY,
+                                        &flags, sizeof(flags)) < 0) {
     gep_perror(errno, "%s():Error-Cannot set TCP_NODELAY on socket (%d)-",
                  log_module, sock);
     return -1;
@@ -109,7 +114,8 @@ int SocketInterface::SetReuseAddr(const char *log_module, int sock) {
   if (!log_module) log_module = "unknown";
 
   int flags = 1;
-  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags)) < 0) {
+  if (raw_socket_interface_->SetSockOpt(sock, SOL_SOCKET, SO_REUSEADDR,
+                                        &flags, sizeof(flags)) < 0) {
     gep_perror(errno, "%s():Error-Cannot set SO_REUSEADDR on socket (%d)-",
                  log_module, sock);
     return -1;
@@ -121,7 +127,8 @@ int SocketInterface::GetPort(const char *log_module, int sock, int *port) {
   struct sockaddr_in addr;
   socklen_t addrlen = sizeof(addr);
 
-  if (getsockname(sock, (struct sockaddr*)&addr, &addrlen) < 0) {
+  if (raw_socket_interface_->GetSockName(sock, (struct sockaddr*)&addr,
+                                         &addrlen) < 0) {
     gep_perror(errno, "%s(*):Error-getsockname failed on socket %d-",
                  log_module, sock);
     return -1;
@@ -135,7 +142,8 @@ char *SocketInterface::GetPeerIP(int sock, char *buf, int size) {
   struct sockaddr_in sock_addr;
   socklen_t sockaddr_size = sizeof(sock_addr);
 
-  if (getpeername(sock, (struct sockaddr *)&sock_addr, &sockaddr_size) == 0) {
+  if (raw_socket_interface_->GetPeerName(sock, (struct sockaddr *)&sock_addr,
+                                         &sockaddr_size) == 0) {
     if (inet_ntop(AF_INET, &sock_addr.sin_addr, buf, size)) {
       return buf;
     } else {
