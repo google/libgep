@@ -26,6 +26,14 @@ class SocketInterface {
   virtual ssize_t Recv(int sockfd, void *buf, size_t len, int flags) {
     return recv(sockfd, buf, len, flags);
   }
+  virtual ssize_t Send(int sockfd, const void *buf, size_t len, int flags) {
+    return send(sockfd, buf, len, flags);
+  }
+  virtual int Select(int nfds, fd_set *readfds, fd_set *writefds,
+                     fd_set *exceptfds, struct timeval *timeout) {
+    return select(nfds, readfds, writefds, exceptfds, timeout);
+  }
+
   // non-blocking send/recv
   // Sends the given data until the socket accepted it all or timeout was hit.
   // Returns the number of bytes sent (=size) for success, else

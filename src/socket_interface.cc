@@ -32,7 +32,7 @@ int SocketInterface::FullSend(int fd, const uint8_t* buf, int size,
   int total_sent = 0;
 
   while (total_sent < size) {
-    int count = send(fd, buf + total_sent, size - total_sent, MSG_DONTWAIT);
+    int count = Send(fd, buf + total_sent, size - total_sent, MSG_DONTWAIT);
     if (count > 0) {
       total_sent += count;
       continue;
@@ -57,7 +57,7 @@ int SocketInterface::FullSend(int fd, const uint8_t* buf, int size,
     FD_ZERO(&write_fds);
     FD_SET(fd, &write_fds);
 
-    int num = select(fd + 1, NULL, &write_fds, NULL, &tv);
+    int num = Select(fd + 1, NULL, &write_fds, NULL, &tv);
     if (num == 0)
       return 0;  // timed out
   }
