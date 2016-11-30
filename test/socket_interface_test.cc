@@ -93,3 +93,17 @@ TEST_F(SocketInterfaceTest, FullSendTimeout) {
   int64_t timeout_ms = 10;
   EXPECT_EQ(0, socket_interface_->FullSend(fd, buf, size, timeout_ms));
 }
+
+TEST_F(SocketInterfaceTest, FullSendTimeoutWhileReceiving) {
+  EXPECT_CALL(*mock_raw_socket_interface_, Send(_, _, _, _))
+      .WillRepeatedly(Return(1));
+  EXPECT_CALL(*mock_time_manager_, ms_elapse(_))
+      .WillOnce(Return(1))
+      .WillOnce(Return(11));
+
+  int fd = 1;
+  const uint8_t buf[1024] = {};
+  int size = 1024;
+  int64_t timeout_ms = 10;
+  EXPECT_EQ(0, socket_interface_->FullSend(fd, buf, size, timeout_ms));
+}

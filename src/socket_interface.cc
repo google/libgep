@@ -37,19 +37,28 @@ int SocketInterface::FullSend(int fd, const uint8_t* buf, int size,
                                             size - total_sent, MSG_DONTWAIT);
     if (count > 0) {
       total_sent += count;
+      if (total_sent >= size) {
+        break;
+      }
+      // check whether we have timed out
+      if (timeout_ms < time_manager_->ms_elapse(started_ms)) {
+        return 0;  // timed out
+      }
       continue;
     }
     if (count == 0) {
       // orderly shutdown of the remote side
       return -2;
     }
-    if (count < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+    if (count < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
       return -1;
+    }
 
     // EAGAIN/EWOULDBLOCK, use select to sleep until the socket has space
     int64_t sleeptime_ms = timeout_ms - time_manager_->ms_elapse(started_ms);
-    if (sleeptime_ms < 0)
+    if (sleeptime_ms < 0) {
       return 0;  // timed out
+    }
 
     struct timeval tv;
     memset(&tv, 0, sizeof(tv));
@@ -61,8 +70,9 @@ int SocketInterface::FullSend(int fd, const uint8_t* buf, int size,
 
     int num = raw_socket_interface_->Select(fd + 1, NULL, &write_fds, NULL,
                                             &tv);
-    if (num == 0)
+    if (num == 0) {
       return 0;  // timed out
+    }
   }
   return total_sent;
 }
